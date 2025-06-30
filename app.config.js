@@ -3,9 +3,9 @@ export default ({ config }) => ({
   ...config,
   name: "Tanaw",
   slug: "tanaw-v2",
-  version: "1.0.0",
+  version: "0.1.0",
   orientation: "portrait",
-  icon: "./assets/images/logo-1024px.png",
+  icon: "./assets/images/logo-app.png",
   scheme: "tanaw",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
@@ -13,8 +13,9 @@ export default ({ config }) => ({
     supportsTablet: true,
   },
   android: {
+    package: "com.catalyst.tanaw",
     adaptiveIcon: {
-      foregroundImage: "./assets/images/adaptive-icon.png",
+      foregroundImage: "./assets/images/logo-app.png",
       backgroundColor: "#ffffff",
     },
     edgeToEdgeEnabled: true,
@@ -22,7 +23,7 @@ export default ({ config }) => ({
   web: {
     bundler: "metro",
     output: "static",
-    favicon: "./assets/images/favicon.png",
+    favicon: "./assets/images/logo_1024px.png",
   },
   plugins: [
     "expo-router",
@@ -30,10 +31,10 @@ export default ({ config }) => ({
       "expo-splash-screen",
       {
         backgroundColor: "#ffffff",
-        image: "./assets/images/logo-1024px.png",
+        image: "./assets/images/logo_1024px.png",
         resizeMode: "contain",
         dark: {
-          image: "./assets/images/logo-1024px.png",
+          image: "./assets/images/logo_1024px.png",
           backgroundColor: "#000000",
         },
         imageWidth: 200,
@@ -42,10 +43,10 @@ export default ({ config }) => ({
     [
       "expo-notifications",
       {
-        icon: "./assets/logo-notification.png",
+        icon: "./assets/images/logo_notification.png",
         color: "#ffffff",
         defaultChannel: "default",
-        sounds: ["./assets/notification-sound.wav"],
+        sounds: ["./assets/sounds/notification/notification_sound.wav"],
         enableBackgroundRemoteNotifications: false,
       },
     ],

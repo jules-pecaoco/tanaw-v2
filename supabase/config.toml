@@ -1,0 +1,88 @@
+
+[functions.weather-news-scraper]
+enabled = true
+verify_jwt = true
+import_map = "./functions/weather-news-scraper/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/weather-news-scraper/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/weather-news-scraper/*.html" ]
+
+[functions.gma-weather-news-scraper]
+enabled = true
+verify_jwt = true
+import_map = "./functions/gma-weather-news-scraper/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/gma-weather-news-scraper/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/gma-weather-news-scraper/*.html" ]
+
+[functions.weather-service]
+enabled = true
+verify_jwt = true
+import_map = "./functions/weather-service/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/weather-service/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/weather-service/*.html" ]
+
+[functions.reports-service]
+enabled = true
+verify_jwt = true
+import_map = "./functions/reports-service/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/reports-service/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/reports-service/*.html" ]
+
+[functions.weather-data-function]
+enabled = true
+verify_jwt = true
+import_map = "./functions/weather-data-function/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/weather-data-function/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/weather-data-function/*.html" ]
+
+[functions.weather-analytics-function]
+enabled = true
+verify_jwt = true
+import_map = "./functions/weather-analytics-function/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/weather-analytics-function/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/weather-analytics-function/*.html" ]
+
+[functions.geo-service]
+enabled = true
+verify_jwt = true
+import_map = "./functions/geo-service/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/geo-service/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/geo-service/*.html" ]
+
+[functions.analytics-service]
+enabled = true
+verify_jwt = true
+import_map = "./functions/analytics-service/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/analytics-service/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/analytics-service/*.html" ]

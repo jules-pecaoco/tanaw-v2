@@ -1,15 +1,18 @@
-import { Text, View } from "react-native";
+import { router } from "expo-router";
+import { Text, TouchableOpacity, View } from "react-native";
 
-export default function Index() {
+function Index() {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
+    <View className="flex-1 items-center justify-center bg-red-100">
+      <Text className="text-red-500">This is Index</Text>
+      <TouchableOpacity
+        className="bg-red-500 p-4 rounded-full mt-4"
+        onPress={() => {
+          router.replace("/(tabs)/");
+        }}
+      ></TouchableOpacity>
     </View>
   );
 }
+
+export default Index;

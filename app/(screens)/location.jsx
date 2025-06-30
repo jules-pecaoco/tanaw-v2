@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const report = () => {
+const location = () => {
   return (
     <View className="flex-1 items-center justify-center">
-      <Text>report</Text>
+      <Text>location</Text>
     </View>
   )
 }
 
-export default report
+export default location;
