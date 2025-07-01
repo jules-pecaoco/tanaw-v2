@@ -62,8 +62,11 @@ export default ({ config }) => ({
   },
   extra: {
     eas: {
-      projectId: "7e73159c-3eba-450b-81ee-95d751b1bb4c",
+      projectId: process.env.PROJECT_ID,
     },
+    MAPBOX_PUBLIC_KEY: process.env.MAPBOX_PUBLIC_KEY,
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
   },
   owner: "jules-pecaoco",
 });
