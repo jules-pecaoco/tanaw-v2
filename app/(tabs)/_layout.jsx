@@ -8,7 +8,7 @@ const TabLayout = () => {
 
     }}>
       <Tabs.Screen
-        name="index"
+        name="radar"
         options={{
           title: "Radar",
         }}

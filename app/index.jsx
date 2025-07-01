@@ -8,7 +8,7 @@ function Index() {
       <TouchableOpacity
         className="bg-red-500 p-4 rounded-full mt-4"
         onPress={() => {
-          router.replace("/(tabs)/");
+          router.replace("/radar");
         }}
       ></TouchableOpacity>
     </View>
