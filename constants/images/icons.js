@@ -1,6 +1,6 @@
-import evacsites from "../assets/evacuationsites.png";
-import firestations from "../assets/firestations.png";
-import hospitals from "../assets/hospitals.png";
+import evacsites from "@/assets/icons/evacuationsites.png";
+import firestations from "@/assets/icons/firestations.png";
+import hospitals from "@/assets/icons/hospitals.png";
 
 export default {
   evacsites,

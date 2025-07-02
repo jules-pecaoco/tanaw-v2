@@ -8,9 +8,10 @@ const ScreenLayout = () => {
         contentStyle: { backgroundColor: "transparent" },
       }}
     >
+      <Stack.Screen name="index" />
+      <Stack.Screen name="notification" />
       <Stack.Screen name="alert" />
       <Stack.Screen name="location" />
-      <Stack.Screen name="notification" />
     </Stack>
   );
 };

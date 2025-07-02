@@ -5,7 +5,7 @@ export default ({ config }) => ({
   slug: "tanaw-v2",
   version: "0.1.0",
   orientation: "portrait",
-  icon: "./assets/images/logo-app.png",
+  icon: "./assets/images/logo_app.png",
   scheme: "tanaw",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
@@ -15,7 +15,7 @@ export default ({ config }) => ({
   android: {
     package: "com.catalyst.tanaw",
     adaptiveIcon: {
-      foregroundImage: "./assets/images/logo-app.png",
+      foregroundImage: "./assets/images/logo_app.png",
       backgroundColor: "#ffffff",
     },
     edgeToEdgeEnabled: true,
@@ -51,18 +51,22 @@ export default ({ config }) => ({
       },
     ],
     [
+      "expo-audio"
+    ],
+    [
       "@rnmapbox/maps",
       {
         RNMapboxMapsDownloadToken: process.env.MAPBOX_SECRET_TOKEN,
       },
     ],
+
   ],
   experiments: {
     typedRoutes: true,
   },
   extra: {
     eas: {
-      projectId: process.env.PROJECT_ID,
+      projectId: '7e73159c-3eba-450b-81ee-95d751b1bb4c',
     },
     MAPBOX_PUBLIC_KEY: process.env.MAPBOX_PUBLIC_KEY,
     SUPABASE_URL: process.env.SUPABASE_URL,
