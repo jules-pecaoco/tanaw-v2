@@ -25,7 +25,7 @@ function RootLayout() {
     defaultOptions: {
       queries: {
         staleTime: 1000 * 60 * 20, // 20 minutes - data is fresh for 20 min
-        gcTime: 1000 * 60 * 60 * 4, // 4 hours - keep in cache for 6 hours
+        gcTime: 1000 * 60 * 60 * 4, // 4 hours - keep in cache for 4 hours
         refetchInterval: 1000 * 60 * 20, // 20 minutes - refetch every 20 min
         refetchIntervalInBackground: false, // Don't refetch when app is backgrounded
         refetchOnWindowFocus: false, // Don't refetch on focus
@@ -69,7 +69,13 @@ function RootLayout() {
               }}
             >
               <Stack.Screen name="(onboarding)" />
-              <Stack.Screen name="(modals)" />
+              <Stack.Screen
+                name="(modals)"
+                options={{
+                  animation: "slide_from_bottom",
+                  presentation: "modal",
+                }}
+              />
               <Stack.Screen name="(drawer)" />
             </Stack>
           </SafeAreaView>

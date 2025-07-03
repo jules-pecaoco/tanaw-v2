@@ -9,8 +9,19 @@ const ModalsLayout = () => {
         headerTitleAlign: "center",
       }}
     >
-      <Stack.Screen name="alert" />
-      <Stack.Screen name="report" />
+      <Stack.Screen
+        name="alert"
+        options={{
+          title: "Alert",
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="report"
+        options={{
+          title: "Report",
+        }}
+      />
       <Stack.Screen
         name="searchlocation"
         options={{

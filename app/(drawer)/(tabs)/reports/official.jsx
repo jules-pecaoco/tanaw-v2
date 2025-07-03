@@ -1,12 +1,11 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { Text, View } from "react-native";
 
-const official = () => {
+const Official = () => {
   return (
-    <View>
+    <View className="flex-1 items-center justify-center">
       <Text>official</Text>
     </View>
-  )
-}
+  );
+};
 
-export default official
+export default Official;
