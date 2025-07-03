@@ -1,3 +1,4 @@
+import Mapbox from "@rnmapbox/maps";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { useFonts } from "expo-font";
@@ -6,10 +7,11 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import asyncStoragePersister from "@/storage/persister";
-
 import "@/global.css";
+import asyncStoragePersister from "@/storage/persister";
+import { MAPBOX_PUBLIC_TOKEN } from "../token";
 
+Mapbox.setAccessToken(MAPBOX_PUBLIC_TOKEN);
 SplashScreen.preventAutoHideAsync();
 
 function RootLayout() {

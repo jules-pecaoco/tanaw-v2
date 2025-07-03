@@ -50,25 +50,22 @@ export default ({ config }) => ({
         enableBackgroundRemoteNotifications: false,
       },
     ],
-    [
-      "expo-audio"
-    ],
+    ["expo-audio"],
     [
       "@rnmapbox/maps",
       {
         RNMapboxMapsDownloadToken: process.env.MAPBOX_SECRET_TOKEN,
       },
     ],
-
   ],
   experiments: {
     typedRoutes: true,
   },
   extra: {
     eas: {
-      projectId: '7e73159c-3eba-450b-81ee-95d751b1bb4c',
+      projectId: "7e73159c-3eba-450b-81ee-95d751b1bb4c",
     },
-    MAPBOX_PUBLIC_KEY: process.env.MAPBOX_PUBLIC_KEY,
+    MAPBOX_PUBLIC_TOKEN: process.env.MAPBOX_PUBLIC_TOKEN,
     SUPABASE_URL: process.env.SUPABASE_URL,
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
   },

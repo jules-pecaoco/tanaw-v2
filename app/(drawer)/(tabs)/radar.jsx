@@ -1,11 +1,34 @@
-import { Text, View } from "react-native";
+import Mapbox, { Camera, MapView } from "@rnmapbox/maps";
+import { useState } from "react";
+import { View } from "react-native";
 
-const index = () => {
+const RadarScreen = () => {
+  
+  
   return (
-    <View className="flex-1 items-center justify-center">
-      <Text>index</Text>
+    <View className="flex-1">
+      {isReady && (
+        <MapView
+          style={{ flex: 1 }}
+          styleURL={Mapbox.StyleURL.Light}
+          compassEnabled={true}
+          compassFadeWhenNorth={true}
+          logoEnabled={false}
+          attributionEnabled={false}
+          scaleBarEnabled={false}
+        >
+          <Camera
+            centerCoordinate={[122.93849508523817, 10.653126963455296]}
+            defaultSettings={{
+              centerCoordinate: [122.93849508523817, 10.653126963455296],
+              zoomLevel: 12,
+              pitch: 30,
+            }}
+          ></Camera>
+        </MapView>
+      )}
     </View>
   );
 };
 
-export default index;
+export default RadarScreen;

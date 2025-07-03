@@ -5,7 +5,6 @@ const OnBoardingLayout = () => {
     <Stack
       screenOptions={{
         headerShown: false,
-        animationDuration: 800,
         animation: "slide_from_right",
       }}
     >
