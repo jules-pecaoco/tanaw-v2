@@ -1,13 +1,12 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 function Location() {
   return (
-    <View className="flex-1 items-center justify-center">
-      <StatusBar backgroundColor={"#f3f4f6"}></StatusBar>
-      <LinearGradient className="h-full w-full" locations={[0, 0.5]} colors={["#f3f4f6", "#3c454c"]}>
+    <View className="flex-1 items-center justify-center bg-secondary">
+      <LinearGradient locations={[0.0, 0.5]} colors={["#E84E4C", "#3c454c"]} className="h-full w-full">
         <View className="flex-1 items-center justify-end h-full w-full pb-20">
           <Ionicons name="location" size={120} color="#f3f4f6" />
           <Text className="font-tbold text-gray-400 text-center mt-10">LOCATION PERMISSION</Text>
@@ -21,10 +20,10 @@ function Location() {
             <TouchableOpacity
               className="bg-white text-center py-3 rounded-full font-rsemibold"
               onPress={() => {
-                router.push("/notification");
+                router.push("notification");
               }}
             >
-              <Text className="text-center">Access Location</Text>
+              <Text className="text-center">Allow Access Location</Text>
             </TouchableOpacity>
           </View>
         </View>

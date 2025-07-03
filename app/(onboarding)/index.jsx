@@ -7,9 +7,9 @@ import { images } from "@/constants/index";
 
 function Index() {
   return (
-    <View className="flex-1 items-center justify-center">
-      <StatusBar backgroundColor={"#E84E4C"}></StatusBar>
-      <LinearGradient className="h-full w-full" locations={[0.05, 0.1, 0.4, 0.6]} colors={["#E84E4C", "#f47c25", "#FFFFFF", "#3c454c"]}>
+    <View className="flex-1 items-center justify-center bg-gray-100">
+      <StatusBar style="light" backgroundColor="#E84E4C" />
+      <LinearGradient locations={[0.05, 0.1, 0.4, 0.6]} className="h-full w-full" colors={["#E84E4C", "#f47c25", "#FFFFFF", "#3c454c"]}>
         <View className="flex-1 items-center justify-end h-full w-full pb-20">
           <Image
             style={{
@@ -22,7 +22,6 @@ function Index() {
             // tintColor={"#ffffff"}
             source={images.logo}
             contentFit="cover"
-            transition={100}
           />
           <Text className="font-tbold text-gray-400 text-center">WELCOME</Text>
           <Text className="font-tbold text-gray-300 text-center text-3xl mx-12 mt-5">On top of the risks, so you don’t have to be!</Text>
@@ -35,7 +34,7 @@ function Index() {
             <TouchableOpacity
               className="bg-white text-center py-3 rounded-full font-rsemibold"
               onPress={() => {
-                router.push("/location");
+                router.push("location");
               }}
             >
               <Text className="text-center">Let's Start</Text>

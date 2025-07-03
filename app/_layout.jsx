@@ -60,18 +60,17 @@ function RootLayout() {
 
   return (
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
-      <GestureHandlerRootView>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
           <SafeAreaView style={{ flex: 1 }}>
             <Stack
               screenOptions={{
                 headerShown: false,
-                contentStyle: { backgroundColor: "transparent" },
               }}
             >
-              <Stack.Screen name="(screens)" />
-
-              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="(onboarding)" />
+              <Stack.Screen name="(modals)" />
+              <Stack.Screen name="(drawer)" />
             </Stack>
           </SafeAreaView>
         </SafeAreaProvider>

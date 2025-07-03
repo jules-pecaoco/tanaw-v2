@@ -1,19 +1,19 @@
 import { Stack } from "expo-router";
 
-const ScreenLayout = () => {
+const OnBoardingLayout = () => {
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: "transparent" },
+        animationDuration: 800,
+        animation: "slide_from_right",
       }}
     >
       <Stack.Screen name="index" />
-      <Stack.Screen name="notification" />
-      <Stack.Screen name="alert" />
       <Stack.Screen name="location" />
+      <Stack.Screen name="notification" />
     </Stack>
   );
 };
 
-export default ScreenLayout;
+export default OnBoardingLayout;

@@ -25,8 +25,10 @@
     "@gorhom/bottom-sheet": "^5",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/bottom-tabs": "^7.3.10",
+    "@react-navigation/drawer": "^7.5.2",
     "@react-navigation/elements": "^2.3.8",
-    "@react-navigation/native": "^7.1.6",
+    "@react-navigation/material-top-tabs": "^7.3.2",
+    "@react-navigation/native": "^7.1.14",
     "@rnmapbox/maps": "^10.1.39",
     "@supabase/supabase-js": "^2.50.2",
     "@tanstack/query-async-storage-persister": "^5.81.5",
@@ -40,6 +42,7 @@
     "expo-dev-client": "~5.2.2",
     "expo-font": "~13.3.1",
     "expo-haptics": "~14.1.4",
+    "expo-image": "~2.3.1",
     "expo-image-picker": "~16.1.4",
     "expo-linear-gradient": "~14.1.5",
     "expo-linking": "~7.1.6",
@@ -59,6 +62,7 @@
     "react-native": "0.79.4",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-mmkv": "^3.3.0",
+    "react-native-pager-view": "6.7.1",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
@@ -66,8 +70,7 @@
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
     "tailwindcss": "^3.4.17",
-    "zustand": "^5.0.6",
-    "expo-image": "~2.3.1"
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
