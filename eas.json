@@ -6,16 +6,30 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "${EXPO_PUBLIC_SUPABASE_URL}",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "${EXPO_PUBLIC_SUPABASE_ANON_KEY}",
+        "EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN": "${EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN}",
+        "EXPO_PUBLIC_MAPBOX_SECRET_TOKEN": "${EXPO_PUBLIC_MAPBOX_SECRET_TOKEN}"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "${EXPO_PUBLIC_SUPABASE_URL}",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "${EXPO_PUBLIC_SUPABASE_ANON_KEY}",
+        "EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN": "${EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN}",
+        "EXPO_PUBLIC_MAPBOX_SECRET_TOKEN": "${EXPO_PUBLIC_MAPBOX_SECRET_TOKEN}"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "${EXPO_PUBLIC_SUPABASE_URL}",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "${EXPO_PUBLIC_SUPABASE_ANON_KEY}",
+        "EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN": "${EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN}",
+        "EXPO_PUBLIC_MAPBOX_SECRET_TOKEN": "${EXPO_PUBLIC_MAPBOX_SECRET_TOKEN}"
+      }
     }
-  },
-  "submit": {
-    "production": {}
   }
 }

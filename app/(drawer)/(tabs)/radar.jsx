@@ -1,8 +1,5 @@
 import Mapbox, { Camera, MapView } from "@rnmapbox/maps";
 import { View } from "react-native";
-import { MAPBOX_PUBLIC_TOKEN } from "../../../token";
-
-Mapbox.setAccessToken(MAPBOX_PUBLIC_TOKEN);
 
 const RadarScreen = () => {
   return (
@@ -17,6 +14,8 @@ const RadarScreen = () => {
         scaleBarEnabled={false}
       >
         <Camera
+          centerCoordinate={[122.93849508523817, 10.653126963455296]}
+          animationDuration={1000}
           defaultSettings={{
             centerCoordinate: [122.93849508523817, 10.653126963455296],
             zoomLevel: 12,

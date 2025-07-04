@@ -1,14 +1,13 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 import { images } from "@/constants/index";
 
 function Index() {
   return (
     <View className="flex-1 items-center justify-center bg-[#fffcfa]">
-      <StatusBar style="light" backgroundColor="#E84E4C" />
       <LinearGradient locations={[0.05, 0.1, 0.4, 0.6]} className="h-full w-full" colors={["#E84E4C", "#f47c25", "#FFFFFF", "#3c454c"]}>
         <View className="flex-1 items-center justify-end h-full w-full pb-20">
           <Image

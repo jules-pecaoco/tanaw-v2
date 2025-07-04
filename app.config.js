@@ -54,7 +54,7 @@ export default ({ config }) => ({
     [
       "@rnmapbox/maps",
       {
-        RNMapboxMapsDownloadToken: process.env.MAPBOX_SECRET_TOKEN,
+        RNMapboxMapsDownloadToken: process.env.EXPO_PUBLIC_MAPBOX_SECRET_TOKEN,
       },
     ],
   ],
@@ -65,9 +65,6 @@ export default ({ config }) => ({
     eas: {
       projectId: "7e73159c-3eba-450b-81ee-95d751b1bb4c",
     },
-    MAPBOX_PUBLIC_TOKEN: process.env.MAPBOX_PUBLIC_TOKEN,
-    SUPABASE_URL: process.env.SUPABASE_URL,
-    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
   },
   owner: "jules-pecaoco",
 });

@@ -10,6 +10,8 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import "@/global.css";
 import asyncStoragePersister from "@/storage/persister";
 
+Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN);
+
 SplashScreen.preventAutoHideAsync();
 
 function RootLayout() {
