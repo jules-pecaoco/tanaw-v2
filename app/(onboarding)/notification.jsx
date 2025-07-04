@@ -9,7 +9,7 @@ function Notification() {
       <StatusBar style="light" backgroundColor="#F47C25" />
       <LinearGradient locations={[0.0, 0.5]} colors={["#F47C25", "#3c454c"]} className="h-full w-full">
         <View className="flex-1 items-center justify-end h-full w-full pb-20">
-          <Ionicons name="notifications" size={120} color="#f3f4f6" />
+          <Ionicons name="notifications-outline" size={120} color="#f3f4f6" />
           <Text className="font-tbold text-gray-400 text-center mt-10">NOTIFICATION PERMISSION</Text>
           <Text className="font-tbold text-gray-300 text-center text-3xl mx-20 mt-5">Turn On Notifications for Alerts</Text>
           <Text className="font-tregular text-gray-400 text-center mx-12 mt-5">

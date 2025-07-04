@@ -1,30 +1,79 @@
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import { StatusBar, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { images } from "@/constants/index";
 
 const DrawerContent = (props) => {
+  const pathname = usePathname();
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="p-5">
-        <Image source={images.logo} style={{ width: 100, height: 100, borderRadius: 50 }} contentFit="cover" transition={1000} />
-      </View>
+    <View className="flex-1 bg-gray-100">
       <DrawerContentScrollView {...props}>
-        <DrawerItem label="Radar" onPress={() => router.navigate("/radar")} />
-        <DrawerItem label="Reports" onPress={() => router.navigate("/reports")} />
-        <DrawerItem label="Analytics" onPress={() => router.navigate("/analytics")} />
+        <View className="p-5">
+          <Image source={images.logo} style={{ width: 200, height: 100, borderRadius: 50 }} contentFit="cover" transition={100} />
+        </View>
+        <DrawerItem
+          icon={() => <Ionicons name="compass" size={24} />}
+          label="Radar"
+          activeTintColor="#F47C25"
+          focused={pathname === "/radar"}
+          onPress={() => {
+            router.navigate("/radar");
+          }}
+        />
+        <DrawerItem
+          icon={() => <Ionicons name="newspaper" size={24} />}
+          label="Reports"
+          activeTintColor="#F47C25"
+          focused={pathname === "/reports" || pathname === "/reports/official" || pathname === "/reports/community"}
+          onPress={() => {
+            router.navigate("/reports");
+          }}
+        />
+        <DrawerItem
+          icon={() => <Ionicons name="add-circle" size={24} />}
+          label="Report Hazard/Incident"
+          activeTintColor="#F47C25"
+          focused={pathname === "/report"}
+          onPress={() => {
+            router.navigate("/report");
+          }}
+        />
+        <DrawerItem
+          icon={() => <Ionicons name="bar-chart" size={24} />}
+          label="Forecast & Analytics"
+          activeTintColor="#F47C25"
+          focused={pathname === "/analytics"}
+          onPress={() => {
+            router.navigate("/analytics");
+          }}
+        />
 
         <View className="h-[1px] bg-gray-500 mx-2 my-5"></View>
 
-        <DrawerItem label="About" onPress={() => router.navigate("/about")} />
-        <DrawerItem label="FAQs" onPress={() => router.navigate("/faqs")} />
+        <DrawerItem
+          icon={() => <Ionicons name="information-circle" size={24} />}
+          label="About"
+          activeTintColor="#F47C25"
+          focused={pathname === "/about"}
+          onPress={() => {
+            router.navigate("/about");
+          }}
+        />
+        <DrawerItem
+          icon={() => <Ionicons name="help-circle" size={24} />}
+          label="FAQs"
+          activeTintColor="#F47C25"
+          focused={pathname === "/faqs"}
+          onPress={() => {
+            router.navigate("/faqs");
+          }}
+        />
       </DrawerContentScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -44,7 +93,7 @@ const DrawerLayout = () => {
           headerTitleAlign: "center",
         }}
       >
-        <Drawer.Screen name="(tabs)" options={{ drawerItemStyle: { display: "none" }, headerShown: false }} />
+        <Drawer.Screen name="(tabs)" options={{ headerShown: false }} />
         <Drawer.Screen
           name="about"
           options={{

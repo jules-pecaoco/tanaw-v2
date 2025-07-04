@@ -8,7 +8,7 @@ function Location() {
     <View className="flex-1 items-center justify-center bg-secondary">
       <LinearGradient locations={[0.0, 0.5]} colors={["#E84E4C", "#3c454c"]} className="h-full w-full">
         <View className="flex-1 items-center justify-end h-full w-full pb-20">
-          <Ionicons name="location" size={120} color="#f3f4f6" />
+          <Ionicons name="location-outline" size={120} color="#f3f4f6" />
           <Text className="font-tbold text-gray-400 text-center mt-10">LOCATION PERMISSION</Text>
           <Text className="font-tbold text-gray-300 text-center text-3xl mx-12 mt-5">Enable Location for Hyper-Local Updates</Text>
           <Text className="font-tregular text-gray-400 text-center mx-12 mt-5">

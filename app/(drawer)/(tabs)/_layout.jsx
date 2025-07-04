@@ -3,6 +3,8 @@ import { DrawerActions } from "@react-navigation/native";
 import { router, Tabs, useNavigation } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 
+import BouncingButton from "../../../ui/components/BouncingButton";
+
 const TabIcon = ({ iconName, iconFilled, color, focused, name }) => {
   return (
     <View className={`items-center w-24 h-24 mt-20`}>
@@ -32,6 +34,8 @@ const TabLayout = () => {
           borderTopColor: "#232533",
           height: 75,
         },
+        tabBarButton: (props) => <BouncingButton {...props} android_ripple="transparent" />,
+
         headerTitleAlign: "center",
         headerStyle: {
           backgroundColor: "#f3f4f6",
@@ -43,14 +47,14 @@ const TabLayout = () => {
             <Ionicons name="menu" size={28} color="#1f2937" />
           </TouchableOpacity>
         ),
-        tabBarButton: (props) => <TouchableOpacity {...props} activeOpacity={0.5} />,
+        animation: "shift",
       }}
     >
       <Tabs.Screen
         name="radar"
         options={{
           headerTitle: () => (
-            <View className="fl@react-navigation/material-top-tabsex-row items-center">
+            <View className="flex-row items-center">
               <TouchableOpacity onPress={() => router.push("searchlocation")}>
                 <View className="flex-row items-center">
                   <Ionicons name="search" size={24} color="#1f2937" />
