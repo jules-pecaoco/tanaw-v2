@@ -5,7 +5,7 @@ const ModalsLayout = () => {
     <Stack
       screenOptions={{
         headerShown: true,
-        headerStyle: { backgroundColor: "#f3f4f6" },
+        headerStyle: { backgroundColor: "#fffcfa" },
         headerTitleAlign: "center",
       }}
     >

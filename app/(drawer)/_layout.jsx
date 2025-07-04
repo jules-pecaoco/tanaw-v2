@@ -10,13 +10,13 @@ import { images } from "@/constants/index";
 const DrawerContent = (props) => {
   const pathname = usePathname();
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-[#fffcfa]">
       <DrawerContentScrollView {...props}>
         <View className="p-5">
           <Image source={images.logo} style={{ width: 200, height: 100, borderRadius: 50 }} contentFit="cover" transition={100} />
         </View>
         <DrawerItem
-          icon={() => <Ionicons name="compass" size={24} />}
+          icon={({ color }) => <Ionicons name="compass" size={24} color={color} />}
           label="Radar"
           activeTintColor="#F47C25"
           focused={pathname === "/radar"}
@@ -25,7 +25,7 @@ const DrawerContent = (props) => {
           }}
         />
         <DrawerItem
-          icon={() => <Ionicons name="newspaper" size={24} />}
+          icon={({ color }) => <Ionicons name="newspaper" size={24} color={color} />}
           label="Reports"
           activeTintColor="#F47C25"
           focused={pathname === "/reports" || pathname === "/reports/official" || pathname === "/reports/community"}
@@ -34,7 +34,7 @@ const DrawerContent = (props) => {
           }}
         />
         <DrawerItem
-          icon={() => <Ionicons name="add-circle" size={24} />}
+          icon={({ color }) => <Ionicons name="add-circle" size={24} color={color} />}
           label="Report Hazard/Incident"
           activeTintColor="#F47C25"
           focused={pathname === "/report"}
@@ -43,7 +43,7 @@ const DrawerContent = (props) => {
           }}
         />
         <DrawerItem
-          icon={() => <Ionicons name="bar-chart" size={24} />}
+          icon={({ color }) => <Ionicons name="bar-chart" size={24} color={color} />}
           label="Forecast & Analytics"
           activeTintColor="#F47C25"
           focused={pathname === "/analytics"}
@@ -55,7 +55,7 @@ const DrawerContent = (props) => {
         <View className="h-[1px] bg-gray-500 mx-2 my-5"></View>
 
         <DrawerItem
-          icon={() => <Ionicons name="information-circle" size={24} />}
+          icon={({ color }) => <Ionicons name="information-circle" size={24} color={color} />}
           label="About"
           activeTintColor="#F47C25"
           focused={pathname === "/about"}
@@ -64,7 +64,7 @@ const DrawerContent = (props) => {
           }}
         />
         <DrawerItem
-          icon={() => <Ionicons name="help-circle" size={24} />}
+          icon={({ color }) => <Ionicons name="help-circle" size={24} color={color} />}
           label="FAQs"
           activeTintColor="#F47C25"
           focused={pathname === "/faqs"}
@@ -80,12 +80,12 @@ const DrawerContent = (props) => {
 const DrawerLayout = () => {
   return (
     <>
-      <StatusBar barStyle="dark-content" backgroundColor="#f3f4f6" />
+      <StatusBar barStyle="dark-content" backgroundColor="#fffcfa" />
       <Drawer
         drawerContent={DrawerContent}
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#f3f4f6",
+            backgroundColor: "#fffcfa",
             elevation: 0,
             shadowOpacity: 0,
           },

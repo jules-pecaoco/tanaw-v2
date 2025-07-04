@@ -9,9 +9,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import "@/global.css";
 import asyncStoragePersister from "@/storage/persister";
-import { MAPBOX_PUBLIC_TOKEN } from "../token";
 
-Mapbox.setAccessToken(MAPBOX_PUBLIC_TOKEN);
 SplashScreen.preventAutoHideAsync();
 
 function RootLayout() {

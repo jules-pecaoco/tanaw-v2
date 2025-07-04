@@ -29,7 +29,7 @@ const TabLayout = () => {
         tabBarActiveTintColor: "#F47C25",
         tabBarInactiveTintColor: "#94a3b8",
         tabBarStyle: {
-          backgroundColor: "#f3f4f6",
+          backgroundColor: "#fffcfa",
           borderTopWidth: 0.5,
           borderTopColor: "#232533",
           height: 75,
@@ -38,7 +38,7 @@ const TabLayout = () => {
 
         headerTitleAlign: "center",
         headerStyle: {
-          backgroundColor: "#f3f4f6",
+          backgroundColor: "#fffcfa",
           elevation: 1,
           shadowOpacity: 0,
         },
