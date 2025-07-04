@@ -61,8 +61,8 @@ function RootLayout() {
   }
 
   return (
-    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
         <SafeAreaProvider>
           <SafeAreaView style={{ flex: 1 }}>
             <Stack
@@ -82,8 +82,8 @@ function RootLayout() {
             </Stack>
           </SafeAreaView>
         </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </PersistQueryClientProvider>
+      </PersistQueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
 

@@ -1,6 +1,8 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { withLayoutContext } from "expo-router";
 
+import BouncingButton from "../../../../ui/components/BouncingButton";
+
 const { Navigator } = createMaterialTopTabNavigator();
 const TopTabLayout = withLayoutContext(Navigator);
 
@@ -24,8 +26,8 @@ export default function ReportsTabLayout() {
         },
       }}
     >
-      <TopTabLayout.Screen name="community" options={{ title: "Community", swipeEnabled: false }} />
-      <TopTabLayout.Screen name="official" options={{ title: "Official", swipeEnabled: false }} />
+      <TopTabLayout.Screen name="community" options={{ title: "Community", swipeEnabled: true }} />
+      <TopTabLayout.Screen name="official" options={{ title: "Official", swipeEnabled: true }} />
     </TopTabLayout>
   );
 }

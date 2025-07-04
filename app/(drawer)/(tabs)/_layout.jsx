@@ -55,7 +55,7 @@ const TabLayout = () => {
         options={{
           headerTitle: () => (
             <View className="flex-row items-center">
-              <TouchableOpacity onPress={() => router.push("searchlocation")}>
+              <TouchableOpacity onPress={() => router.push("search")}>
                 <View className="flex-row items-center">
                   <Ionicons name="search" size={24} color="#1f2937" />
                   <Text className="mx-2 text-lg font-tsemibold">Bacolod, PH</Text>

@@ -23,7 +23,7 @@ const ModalsLayout = () => {
         }}
       />
       <Stack.Screen
-        name="searchlocation"
+        name="search"
         options={{
           title: "Search Location",
         }}

@@ -14,7 +14,6 @@ const RadarScreen = () => {
         scaleBarEnabled={false}
       >
         <Camera
-          centerCoordinate={[122.93849508523817, 10.653126963455296]}
           defaultSettings={{
             centerCoordinate: [122.93849508523817, 10.653126963455296],
             zoomLevel: 12,
