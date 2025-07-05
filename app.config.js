@@ -1,4 +1,5 @@
 import "dotenv/config";
+
 export default ({ config }) => ({
   ...config,
   name: "Tanaw",

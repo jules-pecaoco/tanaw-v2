@@ -76,6 +76,7 @@ function RootLayout() {
                 options={{
                   animation: "slide_from_bottom",
                   presentation: "modal",
+                  animationMatchesGesture: true,
                 }}
               />
               <Stack.Screen name="(drawer)" />

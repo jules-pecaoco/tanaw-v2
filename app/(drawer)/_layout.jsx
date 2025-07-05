@@ -3,7 +3,7 @@ import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import { Drawer } from "expo-router/drawer";
-import { StatusBar, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { images } from "@/constants/index";
 
@@ -80,7 +80,6 @@ const DrawerContent = (props) => {
 const DrawerLayout = () => {
   return (
     <>
-      <StatusBar barStyle="dark-content" backgroundColor="#fffcfa" />
       <Drawer
         drawerContent={DrawerContent}
         screenOptions={{
@@ -88,12 +87,19 @@ const DrawerLayout = () => {
             backgroundColor: "#fffcfa",
             elevation: 0,
             shadowOpacity: 0,
+            marginTop: 0,
+            paddingTop: 0,
           },
           headerTintColor: "#1f2937",
           headerTitleAlign: "center",
         }}
       >
-        <Drawer.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Drawer.Screen
+          name="(tabs)"
+          options={{
+            headerShown: false,
+          }}
+        />
         <Drawer.Screen
           name="about"
           options={{

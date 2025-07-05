@@ -25,7 +25,6 @@ const TabLayout = () => {
     <Tabs
       screenOptions={{
         tabBarShowLabel: false,
-        headerShown: true,
         tabBarActiveTintColor: "#F47C25",
         tabBarInactiveTintColor: "#94a3b8",
         tabBarStyle: {
@@ -36,16 +35,21 @@ const TabLayout = () => {
         },
         tabBarButton: (props) => <BouncingButton {...props} android_ripple="transparent" />,
 
+        headerShown: true,
         headerTitleAlign: "center",
         headerStyle: {
           backgroundColor: "#fffcfa",
-          elevation: 1,
+          elevation: 0,
           shadowOpacity: 0,
+          height: 70,
         },
+
         headerLeft: () => (
-          <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())} style={{ marginLeft: 16 }}>
-            <Ionicons name="menu" size={28} color="#1f2937" />
-          </TouchableOpacity>
+          <View className="flex-row items-center ml-5 mb-3">
+            <BouncingButton onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())} android_ripple={{ color: "#f47c25", borderless: true }}>
+              <Ionicons name="menu" size={30} color="#1f2937" />
+            </BouncingButton>
+          </View>
         ),
         animation: "shift",
       }}
@@ -54,11 +58,11 @@ const TabLayout = () => {
         name="radar"
         options={{
           headerTitle: () => (
-            <View className="flex-row items-center">
-              <TouchableOpacity onPress={() => router.push("search")}>
+            <View className="flex-row items-center mb-3">
+              <TouchableOpacity onPress={() => router.navigate("search")}>
                 <View className="flex-row items-center">
                   <Ionicons name="search" size={24} color="#1f2937" />
-                  <Text className="mx-2 text-lg font-tsemibold">Bacolod, PH</Text>
+                  <Text className="mx-2 text-xl font-tmedium">Bacolod, PH</Text>
                   <Ionicons name="chevron-down" size={16} color="#1f2937" />
                 </View>
               </TouchableOpacity>
@@ -75,7 +79,7 @@ const TabLayout = () => {
         options={{
           title: "Reports",
           headerTitle: () => (
-            <View className="flex-row items-center">
+            <View className="flex-row items-center mb-3">
               <Text className="mx-2 text-3xl font-tmedium">Reports</Text>
             </View>
           ),
@@ -89,7 +93,7 @@ const TabLayout = () => {
         name="analytics"
         options={{
           headerTitle: () => (
-            <View className="flex-row items-center">
+            <View className="flex-row items-center mb-3 flex-1">
               <Text className="mx-2 text-3xl font-tmedium">Analytics</Text>
             </View>
           ),

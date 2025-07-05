@@ -6,7 +6,6 @@ import { StatusBar, Text, TouchableOpacity, View } from "react-native";
 function Notification() {
   return (
     <View className="flex-1 items-center justify-center bg-secondary">
-      <StatusBar style="light" backgroundColor="#F47C25" />
       <LinearGradient locations={[0.0, 0.5]} colors={["#F47C25", "#3c454c"]} className="h-full w-full">
         <View className="flex-1 items-center justify-end h-full w-full pb-20">
           <Ionicons name="notifications-outline" size={120} color="#fffcfa" />
