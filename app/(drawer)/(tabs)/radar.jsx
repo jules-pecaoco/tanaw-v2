@@ -13,6 +13,16 @@ const RadarScreen = () => {
         attributionEnabled={false}
         scaleBarEnabled={false}
       >
+        {/* <VectorSource id="radar-source" url="mapbox://jules-pecaoco-dev.4p3rwjm0">
+          <FillLayer
+            id="radar-source"
+            sourceLayerID="flood_100year"
+            style={{
+              fillColor: ["interpolate", ["linear"], ["get", "Var"], 1, "#FFFF00", 2, "#FFA500", 3, "#FF4500"],
+              fillOpacity: 0.8,
+            }}
+          ></FillLayer>
+        </VectorSource> */}
         <Camera
           centerCoordinate={[122.93849508523817, 10.653126963455296]}
           animationDuration={1000}
