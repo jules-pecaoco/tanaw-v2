@@ -93,8 +93,14 @@ const TabLayout = () => {
         name="analytics"
         options={{
           headerTitle: () => (
-            <View className="flex-row items-center mb-3 flex-1">
-              <Text className="mx-2 text-3xl font-tmedium">Analytics</Text>
+            <View className="flex-row items-center mb-3">
+              <TouchableOpacity onPress={() => router.navigate("search")}>
+                <View className="flex-row items-center">
+                  <Ionicons name="search" size={24} color="#1f2937" />
+                  <Text className="mx-2 text-xl font-tmedium">Bacolod, PH</Text>
+                  <Ionicons name="chevron-down" size={16} color="#1f2937" />
+                </View>
+              </TouchableOpacity>
             </View>
           ),
           tabBarIcon: ({ color, focused }) => (

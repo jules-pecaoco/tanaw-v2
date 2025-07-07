@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const RadarScreen = () => {
+const useAnalyticsData = () => {
   return (
     <View>
-      <Text>RadarScreen</Text>
+      <Text>useAnalyticsData</Text>
     </View>
   )
 }
 
-export default RadarScreen
+export default useAnalyticsData

@@ -1,33 +1,34 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const dtToISOString = (dt: number): string => {
   const date = new Date(dt * 1000);
   return date.toISOString();
-}
+};
 
 const extractWeatherArrayData = (item: any) => {
   return {
     main: item.main,
     description: item.description,
-    icon: `https://openweathermap.org/img/wn/${item.icon}@2x.png`
-  }
-}
+    icon: `https://openweathermap.org/img/wn/${item.icon}@2x.png`,
+  };
+};
 
 const extractHourlyForecastData = (hourlyForecastData: any) => {
   return hourlyForecastData.list.map((item: any) => ({
     weather: extractWeatherArrayData(item.weather[0]),
     heat_index: item.main.feels_like,
-    date: dtToISOString(item.dt)
+    date: dtToISOString(item.dt),
   }));
-}
+};
 
 const extractDailyForecastData = (dailyForecastData: any) => {
   return dailyForecastData.list.map((item: any) => ({
     weather: extractWeatherArrayData(item.weather[0]),
     heat_index: item.feels_like.day,
-    date: dtToISOString(item.dt)
+    date: dtToISOString(item.dt),
   }));
-}
+};
 
 const extractNearbyLocationData = (nearbyCitiesData: any) => {
   return nearbyCitiesData.list.map((city: any) => ({
@@ -37,9 +38,8 @@ const extractNearbyLocationData = (nearbyCitiesData: any) => {
     lat: city.coord.lat,
     lon: city.coord.lon,
     date: dtToISOString(city.dt),
-
   }));
-}
+};
 
 const extractCitiesWeatherData = (citiesWeatherData: any) => {
   return citiesWeatherData.list.map((city: any) => ({
@@ -50,9 +50,9 @@ const extractCitiesWeatherData = (citiesWeatherData: any) => {
     lon: city.coord.Lon,
     date: dtToISOString(city.dt),
   }));
-}
+};
 
-const extractWeatherMapData = (weatherMapData: any) => {
+const extractWeatherLayerData = (weatherMapData: any) => {
   const nowcast = weatherMapData.radar?.nowcast || [];
   const past = weatherMapData.radar?.past || [];
   const combined = [...nowcast, ...past];
@@ -78,13 +78,13 @@ const currentWeather = async (lat: string, lon: string, apiKey: string) => {
       currentWeather: {
         weather: data.weather[0],
         heat_index: data.main.feels_like,
-        date: dtToISOString(data.dt)
-      }
+        date: dtToISOString(data.dt),
+      },
     };
   } catch (error) {
     throw new Error(`Failed to fetch current weather: ${error.message}`);
   }
-}
+};
 
 const hourlyWeather = async (lat: string, lon: string, apiKey: string) => {
   try {
@@ -95,12 +95,12 @@ const hourlyWeather = async (lat: string, lon: string, apiKey: string) => {
     }
     const data = await response.json();
     return {
-      hourlyWeather: extractHourlyForecastData(data)
+      hourlyWeather: extractHourlyForecastData(data),
     };
   } catch (error) {
     throw new Error(`Failed to fetch hourly weather: ${error.message} `);
   }
-}
+};
 
 const dailyWeather = async (lat: string, lon: string, apiKey: string) => {
   try {
@@ -111,13 +111,12 @@ const dailyWeather = async (lat: string, lon: string, apiKey: string) => {
     }
     const data = await response.json();
     return {
-      dailyWeather: extractDailyForecastData(data)
+      dailyWeather: extractDailyForecastData(data),
     };
   } catch (error) {
     throw new Error(`Failed to fetch daily weather: ${error.message}`);
   }
-}
-
+};
 
 const nearbyLocationWeather = async (lat: string, lon: string, apiKey: string) => {
   try {
@@ -128,12 +127,12 @@ const nearbyLocationWeather = async (lat: string, lon: string, apiKey: string) =
     }
     const data = await response.json();
     return {
-      nearbyLocationWeather: extractNearbyLocationData(data)
+      nearbyLocationWeather: extractNearbyLocationData(data),
     };
   } catch (error) {
     throw new Error(`Failed to fetch nearby cities weather: ${error.message}`);
   }
-}
+};
 
 const citiesWeather = async (apiKey: string) => {
   try {
@@ -144,125 +143,238 @@ const citiesWeather = async (apiKey: string) => {
     }
     const data = await response.json();
     return {
-      citiesWeather: extractCitiesWeatherData(data)
+      citiesWeather: extractCitiesWeatherData(data),
     };
   } catch (error) {
     throw new Error(`Failed to fetch nearby cities weather: ${error.message}`);
   }
-}
+};
 
-const weatherMaps = async (apiKey: string) => {
+const weatherLayers = async (apiKey: string) => {
   try {
-    const url = 'https://api.rainviewer.com/public/weather-maps.json';
+    const url = "https://api.rainviewer.com/public/weather-maps.json";
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Error fetching weather map URL: ${response.statusText}`);
     }
     const data = await response.json();
-    const extractedData = extractWeatherMapData(data);
+    const extractedData = extractWeatherLayerData(data);
 
     return {
-      weatherMapURL: {
-        heat_index: `http://maps.openweathermap.org/maps/2.0/weather/TD2/{z}/{x}/{y}?&appid=${apiKey}&fill_bound=true&opacity=1&palette=-65:821692; -55:821692; -45:821692;-40:821692;-30:8257DB;-20:208CEC;-10:20C4E8; 0:23DDDD;10:C2FF28;20:FFF028;25:FFC228;30:FC8014&date=`,
-        rain: `http://maps.openweathermap.org/maps/2.0/weather/PR0/{z}/{x}/{y}?appid=${apiKey}&date=`,
-        rain_alt: extractedData.path,
-        date: extractedData.date,
-      }
-    }
+      weatherLayers: {
+        version: "1.0.0",
+        title: "Weather Maps",
+        description: "Weather maps for various weather conditions.",
+        attribution: "Data Provided by OpenweatherMap and RainViewer",
+        weatherGroups: [
+          {
+            id: "heat_index",
+            name: "Heat Index",
+            layers: [
+              {
+                id: "openweathermap_heat_index",
+                name: "Heat Index Layer",
+                tilesetUrl: `http://maps.openweathermap.org/maps/2.0/weather/TD2/{z}/{x}/{y}?&appid=${apiKey}&date=`,
+                sourceLayer: "openweathermap_heat_index",
+                source: "OpenWeatherMap",
+                interval: 1000 * 60 * 60 * 3, // 3 hours
+                maxPastCast: 56,
+                maxFutureCast: 56,
+              },
+            ],
+          },
+          {
+            id: "rain",
+            name: "Rain",
+            layers: [
+              {
+                id: "openweathermap_rain_layer",
+                name: "Rain Layer",
+                tilesetUrl: `http://maps.openweathermap.org/maps/2.0/weather/PR0/{z}/{x}/{y}?appid=${apiKey}&date=`,
+                sourceLayer: "openweathermap_rain_layer",
+                source: "OpenWeatherMap",
+                interval: 1000 * 60 * 60 * 3, // 3 hours
+                maxPastCast: 56,
+                maxFutureCast: 56,
+              },
+              {
+                id: "rainviewer_rain_layer",
+                name: "Rain Alt Layer",
+                tilesetUrl: extractedData.path,
+                sourceLayer: "rainviewer_rain_layer",
+                source: "RainViewer",
+                interval: 1000 * 60 * 10, // 10 minutes
+                maxPastCast: 13,
+                maxFutureCast: 0,
+              },
+            ],
+          },
+        ],
+      },
+    };
   } catch (error) {
     throw new Error(`Failed to fetch weather map URL: ${error.message}`);
   }
-}
+};
 
-const hazardMaps = () => {
+const hazardLayers = () => {
   return {
-    hazardMapURL: {
-      host: "mapbox://jules-pecaoco-dev",
-      hazards: [
+    hazardLayers: {
+      version: "1.0.0",
+      title: "Hazard Maps",
+      description: "Hazard maps for various natural disasters.",
+      attribution: "Data provided by Project NOAH",
+      hazardGroups: [
         {
-          name: "Flood",
-          id: "4p3rwjm0",
-          fields: {
-            get: "Var",
-            minVal: 1,
-            maxVal: 3,
-            style: [
-              "#b047ff",
-              "#5a00ff",
-              "#002474"
-            ]
-          },
+          id: "flood",
+          name: "Flood Hazards",
           layers: [
             {
-              name: "Flood 100 Year",
               id: "flood_100_year",
+              name: "Flood 100 Year",
+              tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
+              sourceLayer: "flood_100_year",
+              style: {
+                type: "fill",
+                property: "Var",
+                stops: [
+                  [1, "#b047ff"],
+                  [2, "#5a00ff"],
+                  [3, "#002474"],
+                ],
+                opacity: 0.7,
+              },
             },
             {
-              name: "Flood 25 Year",
               id: "flood_25_year",
+              name: "Flood 25 Year",
+              tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
+              sourceLayer: "flood_25_year",
+              style: {
+                type: "fill",
+                property: "Var",
+                stops: [
+                  [1, "#b047ff"],
+                  [2, "#5a00ff"],
+                  [3, "#002474"],
+                ],
+                opacity: 0.7,
+              },
             },
             {
-              name: "Flood 5 Year",
               id: "flood_5_year",
-            }
-          ]
+              name: "Flood 5 Year",
+              tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
+              sourceLayer: "flood_5_year",
+              style: {
+                type: "fill",
+                property: "Var",
+                stops: [
+                  [1, "#b047ff"],
+                  [2, "#5a00ff"],
+                  [3, "#002474"],
+                ],
+                opacity: 0.7,
+              },
+            },
+          ],
         },
         {
+          id: "landslide",
           name: "Landslide",
-          id: "cxsao32r",
-          fields: {
-            get: "LH",
-            minVal: 1,
-            maxVal: 3,
-            style: [
-              "#ff0000",
-              "#FFA500",
-              "#FF4500"
-            ]
-          },
           layers: [
             {
-              name: "Landslide Susceptibility",
               id: "landslide_hazards",
-            }
-          ]
+              name: "Landslide Susceptibility",
+              tilesetUrl: "mapbox://jules-pecaoco-dev.cxsao32r",
+              sourceLayer: "landslide_hazards",
+              style: {
+                type: "fill",
+                property: "LH",
+                stops: [
+                  [1, "#ff0000"],
+                  [2, "#FFA500"],
+                  [3, "#FF4500"],
+                ],
+                opacity: 0.7,
+              },
+            },
+          ],
         },
         {
+          id: "storm_surge",
           name: "Storm Surge",
-          id: "dadr2cdn",
-          fields: {
-            get: "HAZ",
-            minVal: 1,
-            maxVal: 3,
-            style: [
-              "#e3d1ff",
-              "#b047ff",
-              "#5a00ff"
-            ]
-          },
           layers: [
             {
-              name: "Storm Surge Advisory 1",
               id: "storm_surge_ssa1",
+              name: "Storm Surge Advisory 1",
+              tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
+              sourceLayer: "storm_surge_ssa1",
+              style: {
+                type: "fill",
+                property: "HAZ",
+                stops: [
+                  [1, "#e3d1ff"],
+                  [2, "#b047ff"],
+                  [3, "#5a00ff"],
+                ],
+                opacity: 0.7,
+              },
             },
             {
-              name: "Storm Surge Advisory 2",
               id: "storm_surge_ssa2",
+              name: "Storm Surge Advisory 2",
+              tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
+              sourceLayer: "storm_surge_ssa2",
+              style: {
+                type: "fill",
+                property: "HAZ",
+                stops: [
+                  [1, "#e3d1ff"],
+                  [2, "#b047ff"],
+                  [3, "#5a00ff"],
+                ],
+                opacity: 0.7,
+              },
             },
             {
-              name: "Storm Surge Advisory 3",
               id: "storm_surge_ssa3",
+              name: "Storm Surge Advisory 3",
+              tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
+              sourceLayer: "storm_surge_ssa3",
+              style: {
+                type: "fill",
+                property: "HAZ",
+                stops: [
+                  [1, "#e3d1ff"],
+                  [2, "#b047ff"],
+                  [3, "#5a00ff"],
+                ],
+                opacity: 0.7,
+              },
             },
             {
-              name: "Storm Surge Advisory 4",
               id: "storm_surge_ssa4",
-            }
-          ]
-        }
-      ]
-    }
-  }
-}
+              name: "Storm Surge Advisory 4",
+              tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
+              sourceLayer: "storm_surge_ssa4",
+              style: {
+                type: "fill",
+                property: "HAZ",
+                stops: [
+                  [1, "#e3d1ff"],
+                  [2, "#b047ff"],
+                  [3, "#5a00ff"],
+                ],
+                opacity: 0.7,
+              },
+            },
+          ],
+        },
+      ],
+    },
+  };
+};
 
 const aggregateWeatherData = async (lat: string, lon: string, apiKey: string) => {
   const currentWeatherData = await currentWeather(lat, lon, apiKey);
@@ -270,38 +382,60 @@ const aggregateWeatherData = async (lat: string, lon: string, apiKey: string) =>
   const dailyWeatherData = await dailyWeather(lat, lon, apiKey);
   const nearbyLocationData = await nearbyLocationWeather(lat, lon, apiKey);
   const citiesWeatherData = await citiesWeather(apiKey);
-  const weatherMapsData = await weatherMaps(apiKey);
-  const hazardMapsData = hazardMaps();
+  const weatherLayersData = await weatherLayers(apiKey);
+  const hazardLayersData = hazardLayers();
   return {
     ...currentWeatherData,
     ...hourlyWeatherData,
     ...dailyWeatherData,
     ...nearbyLocationData,
     ...citiesWeatherData,
-    ...weatherMapsData,
-    ...hazardMapsData,
+    ...weatherLayersData,
+    ...hazardLayersData,
   };
-}
+};
+
+const CACHE_TTL_MINUTES = 20;
 
 Deno.serve(async (req) => {
   try {
-    const apiKey = Deno.env.get('OPENWEATHER_APIKEY');
-    const url = new URL(req.url);
-    const lat = url.searchParams.get('lat');
-    const lon = url.searchParams.get('lon');
-    const data = await aggregateWeatherData(lat, lon, apiKey);
-    return new Response(
-      JSON.stringify(data),
-      { headers: { "Content-Type": "application/json" } }
-    );
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { "Content-Type": "application/json" },
-        status: 400
+    const openWeatherApiKey = Deno.env.get("OPENWEATHER_APIKEY");
+    const { lat, lon } = await req.json();
+
+    const supabaseClient = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_ANON_KEY"));
+
+    //location key
+    const locationKey = `${parseFloat(lat).toFixed(2)}_${parseFloat(lon).toFixed(2)}`;
+
+    const { data: cachedData, error: cacheError } = await supabaseClient
+      .from("weather_data_cache")
+      .select("data, cached_at")
+      .eq("location_key", locationKey)
+      .single();
+    if (cachedData && !cacheError) {
+      const cacheAgeMinutes = (new Date().getTime() - new Date(cachedData.cached_at).getTime()) / 1000 / 60;
+
+      if (cacheAgeMinutes < CACHE_TTL_MINUTES) {
+        return new Response(JSON.stringify(cachedData.data), {
+          headers: { "Content-Type": "application/json" },
+        });
       }
-    );
+    }
+
+    const aggregatedData = await aggregateWeatherData(lat, lon, openWeatherApiKey);
+    const { error: upsertError } = await supabaseClient.from("weather_data_cache").upsert({
+      location_key: locationKey,
+      data: aggregatedData,
+      cached_at: new Date().toISOString(),
+    });
+
+    return new Response(JSON.stringify(aggregatedData), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { "Content-Type": "application/json" },
+      status: 400,
+    });
   }
 });
-
