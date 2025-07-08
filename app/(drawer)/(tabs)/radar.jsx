@@ -1,11 +1,14 @@
 import Mapbox, { Camera, MapView } from "@rnmapbox/maps";
+import { useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
-import LayersSettings from "../../../ui/radar/LayersSettings";
+
+import { parseLayerConfigToProps } from "../../../utilities/index";
 
 import useStore from "../../../hooks/useStore";
 import useWeatherData from "../../../hooks/useWeatherData";
 
-import { useRef } from "react";
+import HazardLayer from "../../../ui/radar/HazardLayer";
+import LayersSettings from "../../../ui/radar/LayersSettings";
 import SideButtons from "../../../ui/radar/SideButtons";
 
 const areCoordinatesEqual = (coord1, coord2, tolerance = 0.0001) => {
@@ -16,8 +19,10 @@ const areCoordinatesEqual = (coord1, coord2, tolerance = 0.0001) => {
 };
 
 const RadarScreen = () => {
-  const { userLocation, isMapCentered, setIsMapCentered, visibleLayers, toggleMenu, showMenu } = useStore();
+  const { userLocation, openGroups, setIsMapCentered, visibleLayers } = useStore();
   const { hazardLayers, weatherLayers, isLoading, isError, error } = useWeatherData(userLocation);
+
+  console.log("RadarScreen Renderd");
 
   const cameraMapRef = useRef(null);
   const onRecenterPress = () => {
@@ -27,7 +32,7 @@ const RadarScreen = () => {
         zoomLevel: 12,
         pitch: 30,
         heading: 0,
-        animationDUration: 500,
+        animationDuration: 1000,
         animationMode: "flyTo",
       });
     }
@@ -35,6 +40,7 @@ const RadarScreen = () => {
   };
   const handleCameraChanged = (event) => {
     const currentCenter = event.properties.center;
+    console.log("Camera changed:", currentCenter);
     const isCentered = areCoordinatesEqual(currentCenter, [userLocation.longitude, userLocation.latitude]);
 
     setIsMapCentered(isCentered);
@@ -47,6 +53,22 @@ const RadarScreen = () => {
       </View>
     );
   }
+
+  // const MemoWeatherLayer = useMemo(() => {
+  //   return weatherLayers.weatherGroups.map(
+  //     (group) =>
+  //       openGroups.weather === group.id &&
+  //       group.layers.map((layer) => {
+  //         const layerKey = `${group.id}_${layer.id}`;
+  //         return <WeatherLayer key={layerKey} id={layerKey} tileUrlTemplates={layer.tilesetUrl} />;
+  //       })
+  //   );
+  // }, [weatherLayers.weatherGroups, visibleLayers.weather, openGroups.weather]);
+
+  // const MemoHazardLayer = useMemo(() => {
+  //   return
+  // }, [hazardLayers.hazardGroups, visibleLayers.hazard, openGroups.hazard]);
+
   return (
     <View className="flex-1">
       <View className="flex-1">
@@ -58,7 +80,7 @@ const RadarScreen = () => {
           logoEnabled={false}
           attributionEnabled={false}
           scaleBarEnabled={false}
-          onCameraChanged={handleCameraChanged}
+          onMapIdle={handleCameraChanged}
         >
           <Camera
             ref={cameraMapRef}
@@ -68,11 +90,29 @@ const RadarScreen = () => {
               zoomLevel: 12,
               pitch: 30,
             }}
-          ></Camera>
+          />
+          {hazardLayers.hazardGroups.map(
+            (group) =>
+              openGroups.hazard[group.id] &&
+              group.layers.map((layer) => {
+                const layerKey = `${group.id}_${layer.id}`;
+                return (
+                  visibleLayers.hazard?.[layerKey] && (
+                    <HazardLayer
+                      key={layerKey}
+                      id={layerKey}
+                      url={layer.tilesetUrl}
+                      sourceLayerID={layer.sourceLayer}
+                      style={parseLayerConfigToProps(layer.style)}
+                    />
+                  )
+                );
+              })
+          )}
         </MapView>
-        <LayersSettings weatherGroups={weatherLayers.weatherGroups} hazardGroups={hazardLayers.hazardGroups} />
-        <SideButtons onRecenterPress={onRecenterPress} />
       </View>
+      <LayersSettings weatherGroups={weatherLayers.weatherGroups} hazardGroups={hazardLayers.hazardGroups} />
+      <SideButtons onRecenterPress={onRecenterPress} />
     </View>
   );
 };

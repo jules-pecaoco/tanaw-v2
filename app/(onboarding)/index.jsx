@@ -7,7 +7,7 @@ import { images } from "@/constants/index";
 
 function Index() {
   return (
-    <View className="flex-1 items-center justify-center bg-[#fffcfa]">
+    <View className="flex-1 items-center justify-center bg-background">
       <LinearGradient locations={[0.05, 0.1, 0.4, 0.6]} className="h-full w-full" colors={["#E84E4C", "#f47c25", "#FFFFFF", "#3c454c"]}>
         <View className="flex-1 items-center justify-end h-full w-full pb-20">
           <Image

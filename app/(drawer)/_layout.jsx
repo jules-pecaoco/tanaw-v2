@@ -10,7 +10,7 @@ import { images } from "@/constants/index";
 const DrawerContent = (props) => {
   const pathname = usePathname();
   return (
-    <View className="flex-1 bg-[#fffcfa]">
+    <View className="flex-1 bg-background">
       <DrawerContentScrollView {...props}>
         <View className="p-5">
           <Image source={images.logo} style={{ width: 200, height: 100, borderRadius: 50 }} contentFit="cover" transition={100} />

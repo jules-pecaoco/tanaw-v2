@@ -1,20 +1,13 @@
 const buildFillColorExpression = (style) => {
-  if (!style || !style.stops) return "blue"; // Default color
-
-  const stops = style.stops.flatMap((stop) => [stop.value, stop.color]);
-  return ["interpolate", ["linear"], ["get", style.property], ...stops];
+  const flattenedStops = style.stops.flat();
+  return ["interpolate", ["linear"], ["get", style.property], ...flattenedStops];
 };
 
-const parseLayerConfigToProps = (layer) => {
+const parseLayerConfigToProps = (style) => {
   return {
-    id: layer.id,
-    vectorURL: layer.tilesetUrl,
-    fillLayerSourceID: layer.sourceLayer,
-    style: {
-      fillColor: buildFillColorExpression(layer.style),
-      fillOpacity: layer.style.opacity,
-    },
+    fillColor: buildFillColorExpression(style),
+    fillOpacity: style.opacity,
   };
 };
 
-export default parseLayerConfigToProps
+export default parseLayerConfigToProps;

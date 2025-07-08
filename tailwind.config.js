@@ -9,7 +9,7 @@ module.exports = {
         primary: "#F47C25",
         secondary: "#3C454C",
         tertiary: "#E84E4C",
-        background: "#fffcfa"
+        background: "#fffcfa",
       },
       fontFamily: {
         tlight: ["RobotoCondensed-Light", "sans-serif"],

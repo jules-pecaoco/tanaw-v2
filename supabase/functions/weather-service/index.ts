@@ -236,10 +236,10 @@ const hazardLayers = () => {
           icon: "https://cdn-icons-png.flaticon.com/512/4668/4668660.png",
           layers: [
             {
-              id: "flood_100_year",
-              name: "Flood 100 Year",
+              id: "flood_100year",
+              name: "Flood Prone Areas",
               tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
-              sourceLayer: "flood_100_year",
+              sourceLayer: "flood_100year",
               style: {
                 type: "fill",
                 property: "Var",
@@ -252,10 +252,10 @@ const hazardLayers = () => {
               },
             },
             // {
-            //   id: "flood_25_year",
+            //   id: "flood_25year",
             //   name: "Flood 25 Year",
             //   tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
-            //   sourceLayer: "flood_25_year",
+            //   sourceLayer: "flood_25year",
             //   style: {
             //     type: "fill",
             //     property: "Var",
@@ -268,10 +268,10 @@ const hazardLayers = () => {
             //   },
             // },
             // {
-            //   id: "flood_5_year",
+            //   id: "flood_5year",
             //   name: "Flood 5 Year",
             //   tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
-            //   sourceLayer: "flood_5_year",
+            //   sourceLayer: "flood_5year",
             //   style: {
             //     type: "fill",
             //     property: "Var",

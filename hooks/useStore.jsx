@@ -18,29 +18,62 @@ const useStore = create(
       setUserNotificationLocation: (location) => set({ userNotificationLoation: location }),
 
       showMenu: false,
-      openGroups: {},
-      visibleLayers: {},
+      openGroups: {
+        hazard: {},
+        weather: null,
+      },
+      visibleLayers: {
+        hazard: {},
+        weather: null,
+      },
 
       // Actions
       toggleMenu: () => set((state) => ({ showMenu: !state.showMenu })),
 
-      toggleGroup: (groupId) =>
-        set((state) => ({
-          openGroups: {
-            ...state.openGroups,
-            [groupId]: !state.openGroups[groupId],
-          },
-        })),
-
-      toggleLayer: (groupId, layerId) =>
+      toggleGroup: (groupId, isCascade = true) =>
         set((state) => {
-          const layerKey = `${groupId}_${layerId}`;
-          return {
-            visibleLayers: {
-              ...state.visibleLayers,
-              [layerKey]: !state.visibleLayers[layerKey],
-            },
-          };
+          if (isCascade) {
+            return {
+              openGroups: {
+                ...state.openGroups,
+                hazard: {
+                  ...state.openGroups.hazard,
+                  [groupId]: !state.openGroups.hazard?.[groupId],
+                },
+              },
+            };
+          } else {
+            return {
+              openGroups: {
+                ...state.openGroups,
+                weather: state.openGroups.weather === groupId ? null : groupId,
+              },
+            };
+          }
+        }),
+
+      toggleLayer: (groupId, layerId, isCascade = true) =>
+        set((state) => {
+          if (isCascade) {
+            const layerKey = `${groupId}_${layerId}`;
+            return {
+              visibleLayers: {
+                ...state.visibleLayers,
+                hazard: {
+                  ...state.visibleLayers.hazard,
+                  [layerKey]: !state.visibleLayers.hazard?.[layerKey],
+                },
+              },
+            };
+          } else {
+            const layerKey = `${groupId}_${layerId}`;
+            return {
+              visibleLayers: {
+                ...state.visibleLayers,
+                weather: state.visibleLayers.weather === layerKey ? null : layerKey,
+              },
+            };
+          }
         }),
     }),
     {
