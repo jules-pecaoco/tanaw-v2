@@ -170,10 +170,12 @@ const weatherLayers = async (apiKey: string) => {
           {
             id: "heat_index",
             name: "Heat Index",
+            icon: "https://cdn-icons-png.flaticon.com/512/9066/9066929.png",
             layers: [
               {
                 id: "openweathermap_heat_index",
                 name: "Heat Index Layer",
+                icon: "https://avatars.githubusercontent.com/u/1743227?s=200&v=4",
                 tilesetUrl: `http://maps.openweathermap.org/maps/2.0/weather/TD2/{z}/{x}/{y}?&appid=${apiKey}&date=`,
                 sourceLayer: "openweathermap_heat_index",
                 source: "OpenWeatherMap",
@@ -186,10 +188,12 @@ const weatherLayers = async (apiKey: string) => {
           {
             id: "rain",
             name: "Rain",
+            icon: "https://cdn-icons-png.flaticon.com/512/3314/3314005.png",
             layers: [
               {
                 id: "openweathermap_rain_layer",
                 name: "Rain Layer",
+                icon: "https://avatars.githubusercontent.com/u/1743227?s=200&v=4",
                 tilesetUrl: `http://maps.openweathermap.org/maps/2.0/weather/PR0/{z}/{x}/{y}?appid=${apiKey}&date=`,
                 sourceLayer: "openweathermap_rain_layer",
                 source: "OpenWeatherMap",
@@ -200,6 +204,7 @@ const weatherLayers = async (apiKey: string) => {
               {
                 id: "rainviewer_rain_layer",
                 name: "Rain Alt Layer",
+                icon: "https://avatars.githubusercontent.com/u/13560729?s=200&v=4",
                 tilesetUrl: extractedData.path,
                 sourceLayer: "rainviewer_rain_layer",
                 source: "RainViewer",
@@ -228,6 +233,7 @@ const hazardLayers = () => {
         {
           id: "flood",
           name: "Flood Hazards",
+          icon: "https://cdn-icons-png.flaticon.com/512/4668/4668660.png",
           layers: [
             {
               id: "flood_100_year",
@@ -245,43 +251,44 @@ const hazardLayers = () => {
                 opacity: 0.7,
               },
             },
-            {
-              id: "flood_25_year",
-              name: "Flood 25 Year",
-              tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
-              sourceLayer: "flood_25_year",
-              style: {
-                type: "fill",
-                property: "Var",
-                stops: [
-                  [1, "#b047ff"],
-                  [2, "#5a00ff"],
-                  [3, "#002474"],
-                ],
-                opacity: 0.7,
-              },
-            },
-            {
-              id: "flood_5_year",
-              name: "Flood 5 Year",
-              tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
-              sourceLayer: "flood_5_year",
-              style: {
-                type: "fill",
-                property: "Var",
-                stops: [
-                  [1, "#b047ff"],
-                  [2, "#5a00ff"],
-                  [3, "#002474"],
-                ],
-                opacity: 0.7,
-              },
-            },
+            // {
+            //   id: "flood_25_year",
+            //   name: "Flood 25 Year",
+            //   tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
+            //   sourceLayer: "flood_25_year",
+            //   style: {
+            //     type: "fill",
+            //     property: "Var",
+            //     stops: [
+            //       [1, "#b047ff"],
+            //       [2, "#5a00ff"],
+            //       [3, "#002474"],
+            //     ],
+            //     opacity: 0.7,
+            //   },
+            // },
+            // {
+            //   id: "flood_5_year",
+            //   name: "Flood 5 Year",
+            //   tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
+            //   sourceLayer: "flood_5_year",
+            //   style: {
+            //     type: "fill",
+            //     property: "Var",
+            //     stops: [
+            //       [1, "#b047ff"],
+            //       [2, "#5a00ff"],
+            //       [3, "#002474"],
+            //     ],
+            //     opacity: 0.7,
+            //   },
+            // },
           ],
         },
         {
           id: "landslide",
           name: "Landslide",
+          icon: "https://cdn-icons-png.flaticon.com/512/3920/3920979.png",
           layers: [
             {
               id: "landslide_hazards",
@@ -304,10 +311,11 @@ const hazardLayers = () => {
         {
           id: "storm_surge",
           name: "Storm Surge",
+          icon: "https://cdn-icons-png.flaticon.com/512/2875/2875972.png",
           layers: [
             {
               id: "storm_surge_ssa1",
-              name: "Storm Surge Advisory 1",
+              name: "dvisory 1",
               tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
               sourceLayer: "storm_surge_ssa1",
               style: {
@@ -323,7 +331,7 @@ const hazardLayers = () => {
             },
             {
               id: "storm_surge_ssa2",
-              name: "Storm Surge Advisory 2",
+              name: "Advisory 2",
               tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
               sourceLayer: "storm_surge_ssa2",
               style: {
@@ -339,7 +347,7 @@ const hazardLayers = () => {
             },
             {
               id: "storm_surge_ssa3",
-              name: "Storm Surge Advisory 3",
+              name: "Advisory 3",
               tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
               sourceLayer: "storm_surge_ssa3",
               style: {
@@ -355,7 +363,7 @@ const hazardLayers = () => {
             },
             {
               id: "storm_surge_ssa4",
-              name: "Storm Surge Advisory 4",
+              name: "Advisory 4",
               tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
               sourceLayer: "storm_surge_ssa4",
               style: {

@@ -6,6 +6,17 @@ import storage from "../persistence/user-settings";
 const useStore = create(
   persist(
     (set, get) => ({
+      // DEFAULT VALUES
+      userLocation: { latitude: 10.653126963455296, longitude: 122.93849508523817 },
+      setUserLocation: (location) => set({ userLocation: location }),
+
+      isMapCentered: true,
+      setIsMapCentered: (isCentered) => set({ isMapCentered: isCentered }),
+
+      // USER NOTIFICATION LOCATION
+      userNotificationLoation: { latitude: 10.653126963455296, longitude: 122.93849508523817 },
+      setUserNotificationLocation: (location) => set({ userNotificationLoation: location }),
+
       showMenu: false,
       openGroups: {},
       visibleLayers: {},
@@ -13,17 +24,17 @@ const useStore = create(
       // Actions
       toggleMenu: () => set((state) => ({ showMenu: !state.showMenu })),
 
-      toggleGroup: (groupName) =>
+      toggleGroup: (groupId) =>
         set((state) => ({
           openGroups: {
             ...state.openGroups,
-            [groupName]: !state.openGroups[groupName],
+            [groupId]: !state.openGroups[groupId],
           },
         })),
 
-      toggleLayer: (groupName, layerName) =>
+      toggleLayer: (groupId, layerId) =>
         set((state) => {
-          const layerKey = `${groupName}_${layerName}`;
+          const layerKey = `${groupId}_${layerId}`;
           return {
             visibleLayers: {
               ...state.visibleLayers,
