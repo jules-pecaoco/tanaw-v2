@@ -8,6 +8,7 @@ const analytics = () => {
     longitude: 122.93849508523817,
   };
   const { weatherData, isLoading, isError, error } = useWeatherData(userLocation);
+
   if (isLoading) {
     return (
       <View>

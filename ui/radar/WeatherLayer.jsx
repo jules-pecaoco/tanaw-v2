@@ -1,8 +1,13 @@
-import { RasterSource } from "@rnmapbox/maps";
-import { memo } from "react";
+import { RasterLayer, RasterSource } from "@rnmapbox/maps";
 
-const WeatherLayer = ({ id, tileUrlTemplates }) => {
-  return <RasterSource id={id} tileUrlTemplates={[tileUrlTemplates]} tileSize={256}></RasterSource>;
+const WeatherLayer = ({ id, maxZoomLevel, tileUrlTemplates }) => {
+  const key = `${id}-${tileUrlTemplates}`;
+
+  return (
+    <RasterSource maxZoomLevel={maxZoomLevel} id={`weather-source-${key}`} tileUrlTemplates={[tileUrlTemplates]} tileSize={256}>
+      <RasterLayer id={`weather-layer-${key}`} />
+    </RasterSource>
+  );
 };
 
-export default memo(WeatherLayer);
+export default WeatherLayer;

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import getWeatherData from "../services/weather-data";
-import { createLocationCacheKey } from "../utilities/index";
+import { createLocationCacheKey } from "../utilities/locationKeyGenerator";
 
 const useWeatherData = (userLocation) => {
   const locationCacheKey = createLocationCacheKey(userLocation, 2);
@@ -12,7 +12,6 @@ const useWeatherData = (userLocation) => {
   });
 
   const { currentWeather, hourleyWeather, dailyWeather, nearbyLocationWeather, citiesWeather, weatherLayers, hazardLayers } = data || {};
-
 
   return {
     currentWeather,

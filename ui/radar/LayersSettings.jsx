@@ -7,7 +7,6 @@ import { Image } from "expo-image";
 import BouncingButton from "../components/BouncingButton";
 
 const LayersSettings = ({ weatherGroups, hazardGroups }) => {
-  console.log("LayersSettings Rendered");
   const { showMenu, toggleMenu, openGroups, visibleLayers, toggleGroup, toggleLayer } = useStore();
 
   if (!showMenu) {
@@ -59,7 +58,7 @@ const LayersSettings = ({ weatherGroups, hazardGroups }) => {
                             <BouncingButton
                               key={layerKey}
                               onPress={() => {
-                                toggleLayer(group.id, layer.id, false);
+                                toggleLayer(group.id, layer.id, false, layer);
                               }}
                               className={`flex-1 h-24 min-w-[30%] flex mx-3 items-center justify-center rounded-2xl border bg-background
                 ${visibleLayers.weather === layerKey ? "border-primary border-2" : "border-secondary"}`}

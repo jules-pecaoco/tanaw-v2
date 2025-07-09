@@ -9,7 +9,6 @@ import BouncingButton from "../components/BouncingButton";
 
 const SideButtons = ({ onRecenterPress }) => {
   const { toggleMenu, showMenu, isMapCentered } = useStore();
-  console.log("SideButtons Rendered", isMapCentered);
   return (
     <View className="absolute top-36 right-5 h-full w-24 flex flex-col items-center justify-center">
       <View className="flex flex-col items-center justify-center">

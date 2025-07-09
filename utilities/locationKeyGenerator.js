@@ -16,4 +16,4 @@ const createLocationCacheKey = (location, precision = 2) => {
   return `${lat}_${lon}`;
 };
 
-export default createLocationCacheKey;
+export { createLocationCacheKey };

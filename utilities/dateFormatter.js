@@ -10,7 +10,7 @@
  *   - 'monthDay': Returns the abbreviated month and day (e.g., "Sep 17").
  * @returns {string} The formatted date string.
  */
-export const formatDate = (dateInput, { format = "full" } = {}) => {
+const formatDate = (dateInput, { format = "full" } = {}) => {
   if (!dateInput) {
     return "Invalid Date";
   }
@@ -58,4 +58,4 @@ export const formatDate = (dateInput, { format = "full" } = {}) => {
   return new Intl.DateTimeFormat("en-US", options).format(date);
 };
 
-export default formatDate;
+export { formatDate };

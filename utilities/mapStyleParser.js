@@ -3,6 +3,11 @@ const buildFillColorExpression = (style) => {
   return ["interpolate", ["linear"], ["get", style.property], ...flattenedStops];
 };
 
+/**
+ * Parses the layer configuration to extract properties for rendering.
+ * @param {Object} style - The style configuration for the layer.
+ * @returns {Object} An object containing fillColor and fillOpacity properties.
+ */
 const parseLayerConfigToProps = (style) => {
   return {
     fillColor: buildFillColorExpression(style),
@@ -10,4 +15,4 @@ const parseLayerConfigToProps = (style) => {
   };
 };
 
-export default parseLayerConfigToProps;
+export { parseLayerConfigToProps };

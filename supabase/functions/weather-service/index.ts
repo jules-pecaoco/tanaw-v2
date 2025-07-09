@@ -126,31 +126,30 @@ const nearbyLocationWeather = async (lat: string, lon: string, apiKey: string) =
       throw new Error(`Error fetching nearby cities weather: ${response.statusText}`);
     }
     const data = await response.json();
-    return {
-      nearbyLocationWeather: extractNearbyLocationData(data),
-    };
+
+    return extractNearbyLocationData(data);
   } catch (error) {
     throw new Error(`Failed to fetch nearby cities weather: ${error.message}`);
   }
 };
 
-const citiesWeather = async (apiKey: string) => {
-  try {
-    const url = `https://api.openweathermap.org/data/2.5/box/city?bbox=122.0,9.0,123.6,11.2,10&units=metrics&appid=${apiKey}`;
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Error fetching nearby cities weather: ${response.statusText}`);
-    }
-    const data = await response.json();
-    return {
-      citiesWeather: extractCitiesWeatherData(data),
-    };
-  } catch (error) {
-    throw new Error(`Failed to fetch nearby cities weather: ${error.message}`);
-  }
-};
+// const citiesWeather = async (apiKey: string) => {
+//   try {
+//     const url = `https://api.openweathermap.org/data/2.5/box/city?bbox=122.0,9.0,123.6,11.2,10&units=metrics&appid=${apiKey}`;
+//     const response = await fetch(url);
+//     if (!response.ok) {
+//       throw new Error(`Error fetching nearby cities weather: ${response.statusText}`);
+//     }
+//     const data = await response.json();
+//     return {
+//       citiesWeather: extractCitiesWeatherData(data),
+//     };
+//   } catch (error) {
+//     throw new Error(`Failed to fetch nearby cities weather: ${error.message}`);
+//   }
+// };
 
-const weatherLayers = async (apiKey: string) => {
+const weatherLayers = async (lat: string, lon: string, apiKey: string) => {
   try {
     const url = "https://api.rainviewer.com/public/weather-maps.json";
     const response = await fetch(url);
@@ -182,6 +181,8 @@ const weatherLayers = async (apiKey: string) => {
                 interval: 1000 * 60 * 60 * 3, // 3 hours
                 maxPastCast: 56,
                 maxFutureCast: 56,
+                maxZoom: 22,
+                nearbyLocationWeather: await nearbyLocationWeather(lat, lon, apiKey),
               },
             ],
           },
@@ -200,6 +201,7 @@ const weatherLayers = async (apiKey: string) => {
                 interval: 1000 * 60 * 60 * 3, // 3 hours
                 maxPastCast: 56,
                 maxFutureCast: 56,
+                maxZoom: 22,
               },
               {
                 id: "rainviewer_rain_layer",
@@ -209,8 +211,9 @@ const weatherLayers = async (apiKey: string) => {
                 sourceLayer: "rainviewer_rain_layer",
                 source: "RainViewer",
                 interval: 1000 * 60 * 10, // 10 minutes
-                maxPastCast: 13,
-                maxFutureCast: 0,
+                maxPastCast: 12,
+                maxFutureCast: 2,
+                maxZoom: 10,
               },
             ],
           },
@@ -315,7 +318,7 @@ const hazardLayers = () => {
           layers: [
             {
               id: "storm_surge_ssa1",
-              name: "dvisory 1",
+              name: "Advisory 1",
               tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
               sourceLayer: "storm_surge_ssa1",
               style: {
@@ -385,19 +388,19 @@ const hazardLayers = () => {
 };
 
 const aggregateWeatherData = async (lat: string, lon: string, apiKey: string) => {
-  const currentWeatherData = await currentWeather(lat, lon, apiKey);
-  const hourlyWeatherData = await hourlyWeather(lat, lon, apiKey);
-  const dailyWeatherData = await dailyWeather(lat, lon, apiKey);
-  const nearbyLocationData = await nearbyLocationWeather(lat, lon, apiKey);
-  const citiesWeatherData = await citiesWeather(apiKey);
-  const weatherLayersData = await weatherLayers(apiKey);
+  const [currentWeatherData, hourlyWeatherData, dailyWeatherData, weatherLayersData] = await Promise.all([
+    currentWeather(lat, lon, apiKey),
+    hourlyWeather(lat, lon, apiKey),
+    dailyWeather(lat, lon, apiKey),
+    weatherLayers(lat, lon, apiKey),
+  ]);
+
   const hazardLayersData = hazardLayers();
+
   return {
     ...currentWeatherData,
     ...hourlyWeatherData,
     ...dailyWeatherData,
-    ...nearbyLocationData,
-    ...citiesWeatherData,
     ...weatherLayersData,
     ...hazardLayersData,
   };
