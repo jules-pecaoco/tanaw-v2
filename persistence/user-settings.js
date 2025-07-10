@@ -2,8 +2,6 @@ import { MMKV } from "react-native-mmkv";
 
 const mmkv = new MMKV();
 
-//This file is used to create a custom storage for zustand using MMKV
-//Why MMKV? kasi mabilis
 const storage = {
   setItem: (name, value) => {
     return mmkv.set(name, value);

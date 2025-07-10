@@ -3,6 +3,8 @@ import { DrawerActions } from "@react-navigation/native";
 import { router, Tabs, useNavigation } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 
+import useStore from "..//../../hooks/useStore";
+
 import BouncingButton from "../../../ui/components/BouncingButton";
 
 const TabIcon = ({ iconName, iconFilled, color, focused, name }) => {
@@ -20,6 +22,7 @@ const TabIcon = ({ iconName, iconFilled, color, focused, name }) => {
 
 const TabLayout = () => {
   const navigation = useNavigation();
+  const { userLocationName } = useStore();
 
   return (
     <Tabs
@@ -62,7 +65,7 @@ const TabLayout = () => {
               <TouchableOpacity onPress={() => router.navigate("search")}>
                 <View className="flex-row items-center">
                   <Ionicons name="search" size={24} color="#1f2937" />
-                  <Text className="mx-2 text-xl font-tmedium">Bacolod, PH</Text>
+                  <Text className="mx-2 text-xl font-tmedium">{userLocationName}</Text>
                   <Ionicons name="chevron-down" size={16} color="#1f2937" />
                 </View>
               </TouchableOpacity>
@@ -97,7 +100,7 @@ const TabLayout = () => {
               <TouchableOpacity onPress={() => router.navigate("search")}>
                 <View className="flex-row items-center">
                   <Ionicons name="search" size={24} color="#1f2937" />
-                  <Text className="mx-2 text-xl font-tmedium">Bacolod, PH</Text>
+                  <Text className="mx-2 text-xl font-tmedium">{userLocationName}</Text>
                   <Ionicons name="chevron-down" size={16} color="#1f2937" />
                 </View>
               </TouchableOpacity>

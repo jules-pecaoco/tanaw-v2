@@ -3,11 +3,7 @@ import { Text, View } from "react-native";
 import useWeatherData from "../../../hooks/useWeatherData";
 
 const analytics = () => {
-  const userLocation = {
-    latitude: 10.653126963455296,
-    longitude: 122.93849508523817,
-  };
-  const { weatherData, isLoading, isError, error } = useWeatherData(userLocation);
+  const { weatherData, isLoading, isError, error } = useWeatherData();
 
   if (isLoading) {
     return (
@@ -29,5 +25,6 @@ const analytics = () => {
     </View>
   );
 };
+
 
 export default analytics;

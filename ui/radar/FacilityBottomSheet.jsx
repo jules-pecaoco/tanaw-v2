@@ -7,6 +7,17 @@ import useStore from "../../hooks/useStore";
 import { Ionicons } from "@expo/vector-icons";
 import BouncingButton from "../components/BouncingButton";
 
+const handleCategory = (category) => {
+  switch (category) {
+    case "hospital":
+      return "Hospital";
+    case "fire_station":
+      return "Fire Station";
+    case "evac_site":
+      return "Evacuation Site*";
+  }
+};
+
 const openPhoneDialer = (phoneNumber) => {
   const url = `tel:${phoneNumber}`;
   Linking.openURL(url).catch((err) => console.error("Failed to open dialer:", err));
@@ -14,7 +25,7 @@ const openPhoneDialer = (phoneNumber) => {
 
 const FacilityBottomSheet = ({ isLoading, ref, close }) => {
   const { showFacilityBottomSheet, facilityBottomSheetData } = useStore();
-  const { name, short_address, international_phone_number, national_phone_number } = facilityBottomSheetData || {};
+  const { name, short_address, international_phone_number, national_phone_number, category } = facilityBottomSheetData || {};
 
   return (
     <BottomSheet
@@ -46,9 +57,11 @@ const FacilityBottomSheet = ({ isLoading, ref, close }) => {
             <ActivityIndicator size="large" color="#F47C25" />
           </View>
         ) : (
-          <View className="p-4">
+          <View className="px-4 pb-4">
             <Text className="text-xl font-tbold mb-1 text-secondary">{name}</Text>
-            <Text className="text-sm font-tregular text-gray-500 mb-4">{short_address}</Text>
+            <Text className="text-sm font-tregular text-gray-500 ">{short_address}</Text>
+            <Text className="text-base font-tmedium text-secondary mb-4">{handleCategory(category)}</Text>
+
             {international_phone_number ? (
               <BouncingButton onPress={() => openPhoneDialer(international_phone_number)}>
                 <View className="flex-row items-center bg-orange-100 p-3 rounded-full mb-4 w-fit">

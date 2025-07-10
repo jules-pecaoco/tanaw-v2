@@ -26,8 +26,10 @@ const areCoordinatesEqual = (coord1, coord2, tolerance = 0.0001) => {
 
 const RadarScreen = () => {
   const { userLocation, openGroups, setIsMapCentered, visibleLayers, currentTileUrlTemplate } = useStore();
-  const { hazardLayers, weatherLayers, isLoading: weatherIsLoading, isRefetching: weatherIsRefetching } = useWeatherData(userLocation);
-  const { facilitiesData, isLoading: facilitiesIsLoading, isRefetching: facilitiesIsRefetching } = useFacilitiesData(userLocation);
+  const { hazardLayers, weatherLayers, isLoading: weatherIsLoading, isRefetching: weatherIsRefetching } = useWeatherData();
+  const { facilitiesData, isLoading: facilitiesIsLoading, isRefetching: facilitiesIsRefetching } = useFacilitiesData();
+
+  console.log("RadarScreen Rendered with userLocation:", userLocation);
 
   const cameraMapRef = useRef(null);
   const facilityBottomSheetRef = useRef(null);
@@ -36,7 +38,7 @@ const RadarScreen = () => {
     if (cameraMapRef.current) {
       cameraMapRef.current.setCamera({
         centerCoordinate: [userLocation.longitude, userLocation.latitude],
-        zoomLevel: 14,
+        zoomLevel: 15,
         pitch: 30,
         heading: 0,
         animationDuration: 1000,
@@ -45,10 +47,10 @@ const RadarScreen = () => {
     }
     setIsMapCentered(true);
   };
+
   const handleCameraChanged = (event) => {
     const currentCenter = event.properties.center;
     const isCentered = areCoordinatesEqual(currentCenter, [userLocation.longitude, userLocation.latitude]);
-
     setIsMapCentered(isCentered);
   };
 
@@ -68,6 +70,8 @@ const RadarScreen = () => {
     );
   }
 
+  console.log("RadarScreen Rendered");
+
   return (
     <View className="flex-1">
       <View className="flex-1">
@@ -86,7 +90,7 @@ const RadarScreen = () => {
             centerCoordinate={[userLocation.longitude, userLocation.latitude]}
             defaultSettings={{
               centerCoordinate: [userLocation.longitude, userLocation.latitude],
-              zoomLevel: 12,
+              zoomLevel: 15,
               pitch: 30,
             }}
           />
@@ -110,114 +114,119 @@ const RadarScreen = () => {
           </VectorSource>
 
           {/* HAZARD LAYERS */}
-          {hazardLayers.hazardGroups.flatMap((group) =>
-            openGroups.hazard[group.id]
-              ? group.layers
-                  .filter((layer) => {
-                    const layerKey = `${group.id}_${layer.id}`;
-                    return visibleLayers.hazard?.[layerKey];
-                  })
-                  .map((layer) => {
-                    const layerKey = `${group.id}_${layer.id}`;
-                    return (
-                      <HazardLayer
-                        key={layerKey}
-                        id={layerKey}
-                        url={layer.tilesetUrl}
-                        sourceLayerID={layer.sourceLayer}
-                        style={parseLayerConfigToProps(layer.style)}
-                      />
-                    );
-                  })
-              : []
-          )}
+          {hazardLayers?.hazardGroups &&
+            hazardLayers.hazardGroups.flatMap((group) =>
+              openGroups.hazard[group.id]
+                ? group.layers
+                    .filter((layer) => {
+                      const layerKey = `${group.id}_${layer.id}`;
+                      return visibleLayers.hazard?.[layerKey];
+                    })
+                    .map((layer) => {
+                      const layerKey = `${group.id}_${layer.id}`;
+                      return (
+                        <HazardLayer
+                          key={layerKey}
+                          id={layerKey}
+                          url={layer.tilesetUrl}
+                          sourceLayerID={layer.sourceLayer}
+                          style={parseLayerConfigToProps(layer.style)}
+                        />
+                      );
+                    })
+                : []
+            )}
 
           {/* WEATHER LAYERS */}
-          {weatherLayers.weatherGroups.flatMap((group) =>
-            openGroups.weather === group.id
-              ? group.layers
-                  .filter((layer) => {
-                    const layerKey = `${group.id}_${layer.id}`;
-                    return visibleLayers.weather === layerKey;
-                  })
-                  .map((layer) => {
-                    return (
-                      <WeatherLayer
-                        key={currentTileUrlTemplate}
-                        tileUrlTemplates={currentTileUrlTemplate}
-                        id={`${group.id}_${layer.id}`}
-                        maxZoomLevel={group.maxZoomLevel}
-                      />
-                    );
-                  })
-              : []
-          )}
+          {weatherLayers?.weatherGroups &&
+            weatherLayers.weatherGroups.flatMap((group) =>
+              openGroups.weather === group.id
+                ? group.layers
+                    .filter((layer) => {
+                      const layerKey = `${group.id}_${layer.id}`;
+                      return visibleLayers.weather === layerKey;
+                    })
+                    .map((layer) => {
+                      return (
+                        <WeatherLayer
+                          key={currentTileUrlTemplate}
+                          tileUrlTemplates={currentTileUrlTemplate}
+                          id={`${group.id}_${layer.id}`}
+                          maxZoomLevel={group.maxZoomLevel}
+                        />
+                      );
+                    })
+                : []
+            )}
 
           {/* WEATHER POINTS */}
-          {weatherLayers.weatherGroups.flatMap((group) =>
-            openGroups.weather === group.id
-              ? group.layers
-                  .filter((layer) => {
-                    const layerKey = `${group.id}_${layer.id}`;
-                    return visibleLayers.weather === layerKey;
-                  })
-                  .flatMap((layer) => {
-                    return (
-                      layer.nearbyLocationWeather?.map((data) => (
-                        <WeatherPoint key={`${layer.id}_${data.name}`} id={`${layer.id}_${data.name}`} data={data} />
-                      )) || []
-                    );
-                  })
-              : []
-          )}
+          {weatherLayers?.weatherGroups &&
+            weatherLayers?.weatherGroups.flatMap((group) =>
+              openGroups.weather === group.id
+                ? group.layers
+                    .filter((layer) => {
+                      const layerKey = `${group.id}_${layer.id}`;
+                      return visibleLayers.weather === layerKey;
+                    })
+                    .flatMap((layer) => {
+                      return (
+                        layer.nearbyLocationWeather?.map((data) => (
+                          <WeatherPoint key={`${layer.id}_${data.lat}_${data.lon}`} id={`${layer.id}_${data.name}`} data={data} />
+                        )) || []
+                      );
+                    })
+                : []
+            )}
 
           {/* FACILITIES POINTS */}
-          {facilitiesData?.map((facility) => (
-            <FacilityPoint data={facility} key={`${facility.name}_${facility.latitude}_${facility.longitude}`} open={openFacilityBottomSheet} />
-          ))}
+          {facilitiesData &&
+            facilitiesData?.map((facility) => (
+              <FacilityPoint data={facility} key={`${facility.name}_${facility.latitude}_${facility.longitude}`} open={openFacilityBottomSheet} />
+            ))}
         </MapView>
       </View>
       {/* TIMESTAMP */}
-      {weatherLayers.weatherGroups.flatMap((group) =>
-        openGroups.weather === group.id
-          ? group.layers
-              .filter((layer) => {
-                const layerKey = `${group.id}_${layer.id}`;
-                return visibleLayers.weather === layerKey;
-              })
-              .map((layer) => {
-                const layerKey = `${group.id}_${layer.id}`;
-                if (typeof layer.tilesetUrl === "string") {
-                  return (
-                    <TimeStamp
-                      key={layerKey}
-                      maxPastCast={layer.maxPastCast}
-                      maxFutureCast={layer.maxFutureCast}
-                      interval={layer.interval}
-                      url={layer.tilesetUrl}
-                      isString={true}
-                    />
-                  );
-                } else {
-                  return (
-                    <TimeStamp
-                      key={layerKey}
-                      maxPastCast={layer.maxPastCast}
-                      maxFutureCast={layer.maxFutureCast}
-                      interval={layer.interval}
-                      url={layer.tilesetUrl}
-                      isString={false}
-                    />
-                  );
-                }
-              })
-          : []
-      )}
+      {weatherLayers?.weatherGroups &&
+        weatherLayers.weatherGroups.flatMap((group) =>
+          openGroups.weather === group.id
+            ? group.layers
+                .filter((layer) => {
+                  const layerKey = `${group.id}_${layer.id}`;
+                  return visibleLayers.weather === layerKey;
+                })
+                .map((layer) => {
+                  const layerKey = `${group.id}_${layer.id}`;
+                  if (typeof layer.tilesetUrl === "string") {
+                    return (
+                      <TimeStamp
+                        key={layerKey}
+                        maxPastCast={layer.maxPastCast}
+                        maxFutureCast={layer.maxFutureCast}
+                        interval={layer.interval}
+                        url={layer.tilesetUrl}
+                        isString={true}
+                      />
+                    );
+                  } else {
+                    return (
+                      <TimeStamp
+                        key={layerKey}
+                        maxPastCast={layer.maxPastCast}
+                        maxFutureCast={layer.maxFutureCast}
+                        interval={layer.interval}
+                        url={layer.tilesetUrl}
+                        isString={false}
+                      />
+                    );
+                  }
+                })
+            : []
+        )}
 
       {/* NAVIGATIONS */}
       <FacilityBottomSheet isLoading={facilitiesIsLoading || facilitiesIsRefetching} ref={facilityBottomSheetRef} close={closeFacilityBottomSheet} />
-      <LayersSettings weatherGroups={weatherLayers.weatherGroups} hazardGroups={hazardLayers.hazardGroups} />
-      <SideButtons onRecenterPress={onRecenterPress} />
+      <LayersSettings weatherGroups={weatherLayers?.weatherGroups} hazardGroups={hazardLayers?.hazardGroups} />
+      <SideButtons onRecenterPress={onRecenterPress} handleFacilityBottomSheetOpen={closeFacilityBottomSheet} />
     </View>
   );
 };

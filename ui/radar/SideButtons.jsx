@@ -7,12 +7,17 @@ import useStore from "../../hooks/useStore";
 // COMPONENTS
 import BouncingButton from "../components/BouncingButton";
 
-const SideButtons = ({ onRecenterPress }) => {
+const SideButtons = ({ onRecenterPress, handleFacilityBottomSheetOpen }) => {
   const { toggleMenu, showMenu, isMapCentered } = useStore();
   return (
-    <View className="absolute top-36 right-5 h-full w-24 flex flex-col items-center justify-center">
+    <View className="absolute top-36 right-5 h-full w-24 flex flex-col items-center justify-center z-10">
       <View className="flex flex-col items-center justify-center">
-        <BouncingButton onPress={toggleMenu}>
+        <BouncingButton
+          onPress={() => {
+            handleFacilityBottomSheetOpen();
+            toggleMenu();
+          }}
+        >
           <View className="w-20 h-20 mb-6  bg-background rounded-full flex items-center justify-center shadow-neutral-200 shadow-md">
             <Ionicons name={`${showMenu ? "layers" : "layers-outline"}`} size={28} color={`${showMenu ? "#F47C25" : "black"}`} />
           </View>

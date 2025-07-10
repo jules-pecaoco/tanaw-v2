@@ -1,9 +1,25 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
-function Location() {
+import useLocation from "../../hooks/useLocation";
+import useStore from "../../hooks/useStore";
+
+const Location = () => {
+  const { requestLocationPermission, isRequestingLocation } = useLocation();
+  const { userLocation } = useStore();
+
+  const handleLocationPermission = async () => {
+    try {
+      await requestLocationPermission();
+    } catch (error) {
+      console.log("Location permission denied or failed, proceeding with default value");
+    }
+
+    router.push("notification");
+  };
+
   return (
     <View className="flex-1 items-center justify-center bg-secondary">
       <LinearGradient locations={[0.0, 0.5]} colors={["#E84E4C", "#3c454c"]} className="h-full w-full">
@@ -18,18 +34,24 @@ function Location() {
           <View className="my-8"></View>
           <View className="h-fit w-[70%]">
             <TouchableOpacity
-              className="bg-white text-center py-3 rounded-full font-rsemibold"
-              onPress={() => {
-                router.push("notification");
-              }}
+              className={`bg-white text-center py-3 rounded-full font-rsemibold ${isRequestingLocation ? "opacity-70" : ""}`}
+              onPress={handleLocationPermission}
+              disabled={isRequestingLocation}
             >
-              <Text className="text-center">Allow Access Location</Text>
+              {isRequestingLocation ? (
+                <View className="flex-row items-center justify-center">
+                  <ActivityIndicator size="small" color="#000" />
+                  <Text className="text-center ml-2">Getting Location...</Text>
+                </View>
+              ) : (
+                <Text className="text-center">Allow Access Location</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
       </LinearGradient>
     </View>
   );
-}
+};
 
 export default Location;

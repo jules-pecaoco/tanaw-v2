@@ -106,7 +106,6 @@ Deno.serve(async (req) => {
     const CACHE_STALE_HOURS = 24;
     const CACHE_SEARCH_RADIUS_METERS = 5000;
 
-    // Check for a nearby and recent cache entry ---
     const { data: cachedResult, error: cacheError } = await supabaseClient.rpc("find_nearby_facilities_cache", {
       user_lat: latitude,
       user_lon: longitude,
@@ -117,18 +116,16 @@ Deno.serve(async (req) => {
       console.error("Cache lookup RPC failed:", cacheError.message);
     }
 
-    if (cachedResult) {
-      const cacheAgeHours = (new Date().getTime() - new Date(cachedResult.cached_at).getTime()) / 1000 / 60 / 60;
+    if (cachedResult[0]) {
+      const cacheAgeHours = (new Date().getTime() - new Date(cachedResult[0].cached_at).getTime()) / 1000 / 60 / 60;
       if (cacheAgeHours < CACHE_STALE_HOURS) {
-        console.log(`CACHE HIT: Using cached data from ${cachedResult.distance_km.toFixed(2)}km away.`);
-        return new Response(JSON.stringify(cachedResult.data), {
+        return new Response(JSON.stringify(cachedResult[0].data), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
 
-    // Fetch new data if cache is missed ---
-    console.log("CACHE MISS: No recent cache found nearby. Fetching new data.");
+    // // Fetch new data if cache is missed ---
     const facilitiesData = await fetchAndGroupFacilities({ latitude, longitude }, apiKey);
 
     //  Save the new data to the cache ---

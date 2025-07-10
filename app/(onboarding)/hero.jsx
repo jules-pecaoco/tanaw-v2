@@ -3,7 +3,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 
+
 import { images } from "@/constants/index";
+
 
 function Index() {
   return (

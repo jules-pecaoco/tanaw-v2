@@ -7,15 +7,23 @@ const useStore = create(
   persist(
     (set, get) => ({
       // DEFAULT VALUES
-      userLocation: { latitude: 10.653126963455296, longitude: 122.93849508523817 },
+      userId: null,
+      userExpoToken: null,
+      userLocation: {
+        latitude: 10.657643611417026,
+        longitude: 122.9481023926049,
+      },
+      userNotificationLocation: {},
+      userLocationName: "Bacolod City",
 
-      isMapCentered: true,
-
-      // USER NOTIFICATION LOCATION
-      userNotificationLoation: { latitude: 10.653126963455296, longitude: 122.93849508523817 },
+      // SEARCHES
+      recentSearches: [],
 
       // UI STATE
+      currentTileUrlTemplate: null,
       facilityBottomSheetData: null,
+      facilityDestination: {},
+      isMapCentered: true,
 
       showMenu: false,
       openGroups: {
@@ -26,15 +34,24 @@ const useStore = create(
         hazard: {},
         weather: null,
       },
-      currentTileUrlTemplate: null,
 
       // Actions
       setUserLocation: (location) => set({ userLocation: location }),
+      setUserId: (userId) => set({ userId }),
+      setUserExpoToken: (expoToken) => set({ userExpoToken: expoToken }),
+      setUserLocationNotification: (location) => set({ userNotificationLocation: location }),
+      setUserLocationName: (name) => set({ userLocationName: name }),
+
+      // SEARCHES
+      setRecentSearches: (searches) => set({ recentSearches: searches }),
+
+      setCurrentTileUrlTemplate: (url) => set({ currentTileUrlTemplate: url }),
+      setFacilityBottomSheetData: (data) => set({ facilityBottomSheetData: data }),
+
       setIsMapCentered: (isCentered) => set({ isMapCentered: isCentered }),
       setUserNotificationLocation: (location) => set({ userNotificationLoation: location }),
 
       toggleMenu: () => set((state) => ({ showMenu: !state.showMenu })),
-
       toggleGroup: (groupId, isCascade = true) =>
         set((state) => {
           if (isCascade) {
@@ -56,7 +73,6 @@ const useStore = create(
             };
           }
         }),
-
       toggleLayer: (groupId, layerId, isCascade = true, layer = null) =>
         set((state) => {
           if (isCascade) {
@@ -83,9 +99,6 @@ const useStore = create(
             };
           }
         }),
-      setCurrentTileUrlTemplate: (url) => set({ currentTileUrlTemplate: url }),
-
-      setFacilityBottomSheetData: (data) => set({ facilityBottomSheetData: data }),
     }),
     {
       name: "settings-preference",

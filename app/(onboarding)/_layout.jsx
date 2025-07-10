@@ -8,7 +8,7 @@ const OnBoardingLayout = () => {
         animation: "slide_from_right",
       }}
     >
-      <Stack.Screen name="index" />
+      <Stack.Screen name="hero" />
       <Stack.Screen name="location" />
       <Stack.Screen name="notification" />
     </Stack>

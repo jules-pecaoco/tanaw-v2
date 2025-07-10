@@ -1,11 +1,29 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, StatusBar, Text, TouchableOpacity, View } from "react-native";
 
-function Notification() {
+import useNotification from "../../hooks/useNotification";
+import useStore from "../../hooks/useStore";
+
+const NotificationScreen = () => {
+  const { requestPermissionsAndGetToken } = useNotification();
+  const { setUserId } = useStore();
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleAllowAccess = async () => {
+    setIsLoading(true);
+    await requestPermissionsAndGetToken();
+    setIsLoading(false);
+    setUserId("guest");
+    router.replace("/(drawer)/radar");
+  };
+
   return (
     <View className="flex-1 items-center justify-center bg-secondary">
+      <StatusBar barStyle="light-content" />
       <LinearGradient locations={[0.0, 0.5]} colors={["#F47C25", "#3c454c"]} className="h-full w-full">
         <View className="flex-1 items-center justify-end h-full w-full pb-20">
           <Ionicons name="notifications-outline" size={120} color="#fffcfa" />
@@ -15,20 +33,23 @@ function Notification() {
             Turn on notifications to stay informed about important updates, whether it’s changes in local conditions or urgent alerts.
           </Text>
           <View className="my-8"></View>
+
           <View className="h-fit w-[70%]">
-            <TouchableOpacity
-              className="bg-white text-center py-3 rounded-full font-rsemibold"
-              onPress={() => {
-                router.replace("radar");
-              }}
-            >
-              <Text className="text-center">Allow Access Notification</Text>
+            <TouchableOpacity onPress={handleAllowAccess} disabled={isLoading} className="bg-white text-center py-3 rounded-full">
+              {isLoading ? (
+                <View className="flex-row items-center justify-center">
+                  <ActivityIndicator size="small" color="#000" />
+                  <Text className="text-center ml-2">Getting Notification...</Text>
+                </View>
+              ) : (
+                <Text className="text-center">Allow Access Notification</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
       </LinearGradient>
     </View>
   );
-}
+};
 
-export default Notification;
+export default NotificationScreen;

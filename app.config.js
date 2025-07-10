@@ -20,6 +20,7 @@ export default ({ config }) => ({
       backgroundColor: "#ffffff",
     },
     edgeToEdgeEnabled: true,
+    googleServicesFile: "./google-services.json",
   },
   web: {
     bundler: "metro",
@@ -52,6 +53,13 @@ export default ({ config }) => ({
       },
     ],
     ["expo-audio"],
+    [
+      "expo-location",
+      {
+        locationAlwaysAndWhenInUsePermission: "Allow Tanaw to use your location to show local weather and alerts.",
+        locationWhenInUsePermission: "Allow Tanaw to use your location to show local weather and alerts.",
+      },
+    ],
     [
       "@rnmapbox/maps",
       {

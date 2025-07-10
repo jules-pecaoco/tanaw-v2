@@ -38,3 +38,5 @@ yarn-error.*
 
 #builds
 android
+
+google-services.json
