@@ -14,6 +14,9 @@ const useStore = create(
       // USER NOTIFICATION LOCATION
       userNotificationLoation: { latitude: 10.653126963455296, longitude: 122.93849508523817 },
 
+      // UI STATE
+      facilityBottomSheetData: null,
+
       showMenu: false,
       openGroups: {
         hazard: {},
@@ -81,6 +84,8 @@ const useStore = create(
           }
         }),
       setCurrentTileUrlTemplate: (url) => set({ currentTileUrlTemplate: url }),
+
+      setFacilityBottomSheetData: (data) => set({ facilityBottomSheetData: data }),
     }),
     {
       name: "settings-preference",

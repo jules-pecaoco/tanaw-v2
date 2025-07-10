@@ -1,17 +1,21 @@
-import Mapbox, { Camera, MapView } from "@rnmapbox/maps";
+import Mapbox, { Camera, FillExtrusionLayer, MapView, VectorSource } from "@rnmapbox/maps";
 import { useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 import { parseLayerConfigToProps } from "../../../utilities/mapStyleParser";
 
+import useFacilitiesData from "../../../hooks/useFacilitiesData";
 import useStore from "../../../hooks/useStore";
 import useWeatherData from "../../../hooks/useWeatherData";
 
+import FacilityBottomSheet from "../../../ui/radar/FacilityBottomSheet";
+import FacilityPoint from "../../../ui/radar/FacilityPoint";
 import HazardLayer from "../../../ui/radar/HazardLayer";
 import LayersSettings from "../../../ui/radar/LayersSettings";
 import SideButtons from "../../../ui/radar/SideButtons";
 import TimeStamp from "../../../ui/radar/TimeStamp";
 import WeatherLayer from "../../../ui/radar/WeatherLayer";
+import WeatherPoint from "../../../ui/radar/WeatherPoint";
 
 const areCoordinatesEqual = (coord1, coord2, tolerance = 0.0001) => {
   if (!coord1 || !coord2) return false;
@@ -22,15 +26,17 @@ const areCoordinatesEqual = (coord1, coord2, tolerance = 0.0001) => {
 
 const RadarScreen = () => {
   const { userLocation, openGroups, setIsMapCentered, visibleLayers, currentTileUrlTemplate } = useStore();
-  const { hazardLayers, weatherLayers, isLoading, isRefetching, isError, error } = useWeatherData(userLocation);
+  const { hazardLayers, weatherLayers, isLoading: weatherIsLoading, isRefetching: weatherIsRefetching } = useWeatherData(userLocation);
+  const { facilitiesData, isLoading: facilitiesIsLoading, isRefetching: facilitiesIsRefetching } = useFacilitiesData(userLocation);
 
   const cameraMapRef = useRef(null);
+  const facilityBottomSheetRef = useRef(null);
 
   const onRecenterPress = () => {
     if (cameraMapRef.current) {
       cameraMapRef.current.setCamera({
         centerCoordinate: [userLocation.longitude, userLocation.latitude],
-        zoomLevel: 12,
+        zoomLevel: 14,
         pitch: 30,
         heading: 0,
         animationDuration: 1000,
@@ -46,7 +52,15 @@ const RadarScreen = () => {
     setIsMapCentered(isCentered);
   };
 
-  if (isLoading || isRefetching) {
+  const openFacilityBottomSheet = () => {
+    facilityBottomSheetRef.current?.expand();
+  };
+
+  const closeFacilityBottomSheet = () => {
+    facilityBottomSheetRef.current?.close();
+  };
+
+  if (weatherIsLoading || weatherIsRefetching) {
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" color="#F47C25" />
@@ -76,6 +90,26 @@ const RadarScreen = () => {
               pitch: 30,
             }}
           />
+
+          {/* 3D BUILDINGS */}
+          <VectorSource id="composite" url="mapbox://mapbox.mapbox-streets-v8">
+            <FillExtrusionLayer
+              id="building-3d"
+              sourceID="composite"
+              sourceLayerID="building"
+              style={{
+                fillExtrusionHeight: ["get", "height"],
+
+                fillExtrusionBase: 0,
+
+                fillExtrusionColor: "#d3d3d3", // Light gray
+
+                fillExtrusionOpacity: 0.85,
+              }}
+            />
+          </VectorSource>
+
+          {/* HAZARD LAYERS */}
           {hazardLayers.hazardGroups.flatMap((group) =>
             openGroups.hazard[group.id]
               ? group.layers
@@ -97,6 +131,8 @@ const RadarScreen = () => {
                   })
               : []
           )}
+
+          {/* WEATHER LAYERS */}
           {weatherLayers.weatherGroups.flatMap((group) =>
             openGroups.weather === group.id
               ? group.layers
@@ -105,16 +141,6 @@ const RadarScreen = () => {
                     return visibleLayers.weather === layerKey;
                   })
                   .map((layer) => {
-                    const nearbyLocationWeather = layer.nearbyLocationWeather || [];
-
-                    const getHeatColor = (heatIndex) => {
-                      if (heatIndex >= 37) return "bg-red-500";
-                      if (heatIndex >= 35) return "bg-orange-500";
-                      if (heatIndex >= 33) return "bg-yellow-500";
-                      return "bg-yellow-400";
-                    };
-
-                    console.log("nearbyLocationWeather", nearbyLocationWeather);
                     return (
                       <WeatherLayer
                         key={currentTileUrlTemplate}
@@ -126,8 +152,32 @@ const RadarScreen = () => {
                   })
               : []
           )}
+
+          {/* WEATHER POINTS */}
+          {weatherLayers.weatherGroups.flatMap((group) =>
+            openGroups.weather === group.id
+              ? group.layers
+                  .filter((layer) => {
+                    const layerKey = `${group.id}_${layer.id}`;
+                    return visibleLayers.weather === layerKey;
+                  })
+                  .flatMap((layer) => {
+                    return (
+                      layer.nearbyLocationWeather?.map((data) => (
+                        <WeatherPoint key={`${layer.id}_${data.name}`} id={`${layer.id}_${data.name}`} data={data} />
+                      )) || []
+                    );
+                  })
+              : []
+          )}
+
+          {/* FACILITIES POINTS */}
+          {facilitiesData?.map((facility) => (
+            <FacilityPoint data={facility} key={`${facility.name}_${facility.latitude}_${facility.longitude}`} open={openFacilityBottomSheet} />
+          ))}
         </MapView>
       </View>
+      {/* TIMESTAMP */}
       {weatherLayers.weatherGroups.flatMap((group) =>
         openGroups.weather === group.id
           ? group.layers
@@ -163,6 +213,9 @@ const RadarScreen = () => {
               })
           : []
       )}
+
+      {/* NAVIGATIONS */}
+      <FacilityBottomSheet isLoading={facilitiesIsLoading || facilitiesIsRefetching} ref={facilityBottomSheetRef} close={closeFacilityBottomSheet} />
       <LayersSettings weatherGroups={weatherLayers.weatherGroups} hazardGroups={hazardLayers.hazardGroups} />
       <SideButtons onRecenterPress={onRecenterPress} />
     </View>

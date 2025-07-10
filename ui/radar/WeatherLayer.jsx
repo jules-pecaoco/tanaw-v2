@@ -1,11 +1,11 @@
 import { RasterLayer, RasterSource } from "@rnmapbox/maps";
 
-const WeatherLayer = ({ id, maxZoomLevel, tileUrlTemplates }) => {
+const WeatherLayer = ({ id, maxZoomLevel, tileUrlTemplates, layer }) => {
   const key = `${id}-${tileUrlTemplates}`;
 
   return (
     <RasterSource maxZoomLevel={maxZoomLevel} id={`weather-source-${key}`} tileUrlTemplates={[tileUrlTemplates]} tileSize={256}>
-      <RasterLayer id={`weather-layer-${key}`} />
+      <RasterLayer belowLayerID="building" id={`weather-layer-${key}`} />
     </RasterSource>
   );
 };
