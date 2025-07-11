@@ -1,4 +1,4 @@
-import Mapbox, { Camera, FillExtrusionLayer, MapView, VectorSource } from "@rnmapbox/maps";
+import Mapbox, { Camera, FillExtrusionLayer, MapView, UserLocation, VectorSource } from "@rnmapbox/maps";
 import { useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 
@@ -7,6 +7,7 @@ import { parseLayerConfigToProps } from "../../../utilities/mapStyleParser";
 import useFacilitiesData from "../../../hooks/useFacilitiesData";
 import useStore from "../../../hooks/useStore";
 import useWeatherData from "../../../hooks/useWeatherData";
+import useUserInfo from "../../../hooks/useUserInfo";
 
 import FacilityBottomSheet from "../../../ui/radar/FacilityBottomSheet";
 import FacilityDirection from "../../../ui/radar/FacilityDirection";
@@ -29,8 +30,7 @@ const RadarScreen = () => {
   const { userLocation, openGroups, facilityDirection, setIsMapCentered, visibleLayers, currentTileUrlTemplate } = useStore();
   const { hazardLayers, weatherLayers, isLoading: weatherIsLoading, isRefetching: weatherIsRefetching } = useWeatherData();
   const { facilitiesData, isLoading: facilitiesIsLoading, isRefetching: facilitiesIsRefetching } = useFacilitiesData();
-
-  console.log("RadarScreen Rendered with userLocation:", userLocation);
+  useUserInfo();
 
   const cameraMapRef = useRef(null);
   const facilityBottomSheetRef = useRef(null);
@@ -71,8 +71,6 @@ const RadarScreen = () => {
     );
   }
 
-  console.log("RadarScreen Rendered");
-
   return (
     <View className="flex-1">
       <View className="flex-1">
@@ -96,6 +94,8 @@ const RadarScreen = () => {
             }}
           />
 
+          <UserLocation></UserLocation>
+
           {/* 3D BUILDINGS */}
           <VectorSource id="composite" url="mapbox://mapbox.mapbox-streets-v8">
             <FillExtrusionLayer
@@ -116,7 +116,7 @@ const RadarScreen = () => {
 
           {/* HAZARD LAYERS */}
           {hazardLayers?.hazardGroups &&
-            hazardLayers.hazardGroups.flatMap((group) =>
+            hazardLayers?.hazardGroups.flatMap((group) =>
               openGroups.hazard[group.id]
                 ? group.layers
                     .filter((layer) => {
@@ -140,7 +140,7 @@ const RadarScreen = () => {
 
           {/* WEATHER LAYERS */}
           {weatherLayers?.weatherGroups &&
-            weatherLayers.weatherGroups.flatMap((group) =>
+            weatherLayers?.weatherGroups.flatMap((group) =>
               openGroups.weather === group.id
                 ? group.layers
                     .filter((layer) => {
@@ -172,7 +172,7 @@ const RadarScreen = () => {
                     .flatMap((layer) => {
                       return (
                         layer.nearbyLocationWeather?.map((data) => {
-                          const key = `${layer.id}_${data.name}_${data.latitude}_${data.longitude}`;
+                          const key = `${layer.id}_${data.name}_${data.lat}_${data.lon}`;
                           return <WeatherPoint key={key} id={`${layer.id}_${data.name}`} data={data} />;
                         }) || []
                       );

@@ -2,6 +2,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
+import useLocation from "./useLocation";
 import useStore from "./useStore";
 
 import { fetchDirections, searchCityDetails, searchCitySuggestions } from "../services/search";
@@ -13,6 +14,7 @@ import { fetchDirections, searchCityDetails, searchCitySuggestions } from "../se
  */
 const useSearch = () => {
   const { userLocation, userId: sessionToken, setUserLocation, setUserLocationName } = useStore();
+  const { getCurrentLocation } = useLocation();
 
   const queryClient = useQueryClient();
 
@@ -40,11 +42,12 @@ const useSearch = () => {
       const directionsQueryKey = ["directions", userLocation, destination];
       const cachedDirections = queryClient.getQueryData(directionsQueryKey);
       if (cachedDirections) {
-        console.log("Returning cached directions");
         return cachedDirections;
-      }
+      };
 
-      const newDirections = await fetchDirections(userLocation, destination, "driving");
+      const currentLocation = await getCurrentLocation();
+
+      const newDirections = await fetchDirections(currentLocation, destination, "driving");
       queryClient.setQueryData(directionsQueryKey, newDirections);
       return newDirections;
     } catch (error) {

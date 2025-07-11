@@ -46,7 +46,7 @@ export default ({ config }) => ({
       "expo-notifications",
       {
         icon: "./assets/images/logo_notification.png",
-        color: "#ffffff",
+        color: "#F47C25",
         defaultChannel: "default",
         sounds: ["./assets/sounds/notification/notification_sound.wav"],
         enableBackgroundRemoteNotifications: false,

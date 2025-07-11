@@ -268,7 +268,6 @@ class WeatherScraper {
   // Optimized GMA scraping using efficient XML parsing from first file
   async scrapeGmaWeather(): Promise<{ source_info: SourceInfo; items: WeatherItem[] }> {
     try {
-      console.log("Fetching GMA RSS feed...");
       const response = await this.fetchWithTimeout(this.gmaRssUrl);
 
       if (!response.ok) {
@@ -276,7 +275,6 @@ class WeatherScraper {
       }
 
       const rssContent = await response.text();
-      console.log("RSS content length:", rssContent.length);
 
       // Extract channel info using efficient regex parsing
       const channelInfo = {
@@ -297,7 +295,6 @@ class WeatherScraper {
 
       // Extract all items using efficient regex parsing
       const itemsXML = this.extractAllItems(rssContent);
-      console.log("Found items:", itemsXML.length);
 
       const items: WeatherItem[] = [];
 
@@ -318,7 +315,6 @@ class WeatherScraper {
           const author = this.cleanCDATA(this.extractXMLValue(itemXML, "author"));
 
           if (!title.trim()) {
-            console.log(`Skipping item ${i + 1} - no title`);
             continue;
           }
 
@@ -345,14 +341,11 @@ class WeatherScraper {
           };
 
           items.push(weatherItem);
-          console.log(`Processed item ${i + 1}: ${title.substring(0, 50)}...`);
         } catch (itemError) {
-          console.error(`Error processing item ${i + 1}:`, itemError);
           continue;
         }
       }
 
-      console.log(`Successfully processed ${items.length} GMA weather items`);
 
       return { source_info: sourceInfo, items };
     } catch (error) {
@@ -377,7 +370,6 @@ class WeatherScraper {
     forecast_conditions: ForecastCondition[];
   }> {
     try {
-      console.log("Fetching PAGASA weather data...");
       const url = `${this.pagasaBaseUrl}/weather`;
       const response = await this.fetchWithTimeout(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -453,7 +445,6 @@ class WeatherScraper {
         }
       }
 
-      console.log(`Processed ${forecastConditions.length} PAGASA forecast conditions`);
 
       return {
         source_info: sourceInfo,
@@ -609,12 +600,10 @@ serve(async (req) => {
       const cacheAgeMinutes = (new Date().getTime() - new Date(cachedData.cached_at).getTime()) / 1000 / 60;
 
       if (cacheAgeMinutes < CACHE_TTL_MINUTES) {
-        console.log(`CACHE HIT: Returning fresh data from ${cachedData.cached_at}`);
         return new Response(JSON.stringify(cachedData.data), { headers: corsHeaders });
       }
     }
 
-    console.log("CACHE MISS: Scraping new data from sources.");
     const scraper = new WeatherScraper();
     const freshWeatherData = await scraper.combineWeatherData();
 

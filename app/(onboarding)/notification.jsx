@@ -1,4 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import * as Crypto from "expo-crypto";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -11,17 +12,30 @@ import useStore from "../../hooks/useStore";
 const NotificationScreen = () => {
   const { getReverseGeocode } = useLocation();
   const { requestPermissionsAndGetToken } = useNotification();
-  const { setUserId } = useStore();
-
+  const { setUserId, setUserLocationNotification, userLocation } = useStore();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAllowAccess = async () => {
+    if (isLoading) return;
+
     setIsLoading(true);
-    await requestPermissionsAndGetToken();
-    await getReverseGeocode();
-    setIsLoading(false);
-    setUserId("guest");
-    router.replace("/(drawer)/radar");
+    try {
+      const permissionGranted = await requestPermissionsAndGetToken();
+      await Promise.all([
+        await getReverseGeocode(),
+        async () => {
+          if (permissionGranted) {
+            setUserLocationNotification(userLocation);
+          }
+        },
+      ]);
+    } catch (error) {
+      console.error("Error during notification permission request:", error);
+    } finally {
+      setUserId(Crypto.randomUUID());
+      setIsLoading(false);
+      router.replace("/(drawer)/radar");
+    }
   };
 
   return (

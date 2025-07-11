@@ -17,7 +17,7 @@ const useStore = create(
         longitude: 122.9481023926049,
       },
       //user location for notifations
-      userNotificationLocation: {},
+      userLocationNotification: {},
       // user location name
       userLocationName: "Bacolod City",
       //facility destination
@@ -46,10 +46,9 @@ const useStore = create(
       setUserLocation: (location) => set({ userLocation: location }),
       setUserId: (userId) => set({ userId }),
       setUserExpoToken: (expoToken) => set({ userExpoToken: expoToken }),
-      setUserLocationNotification: (location) => set({ userNotificationLocation: location }),
+      setUserLocationNotification: (location) => set({ userLocationNotification: location }),
       setUserLocationName: (name) => set({ userLocationName: name }),
 
-      
       setFacilityDirection: (direction) => set({ facilityDirection: direction }),
 
       // SEARCHES
@@ -59,7 +58,6 @@ const useStore = create(
       setFacilityBottomSheetData: (data) => set({ facilityBottomSheetData: data }),
 
       setIsMapCentered: (isCentered) => set({ isMapCentered: isCentered }),
-      setUserNotificationLocation: (location) => set({ userNotificationLoation: location }),
 
       toggleMenu: () => set((state) => ({ showMenu: !state.showMenu })),
       toggleGroup: (groupId, isCascade = true) =>

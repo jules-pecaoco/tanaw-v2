@@ -9,7 +9,7 @@ import BouncingButton from "../components/BouncingButton";
 const LayersSettings = ({ weatherGroups, hazardGroups }) => {
   const { showMenu, toggleMenu, openGroups, visibleLayers, toggleGroup, toggleLayer } = useStore();
 
-  if (!showMenu) {
+  if (!showMenu || (!weatherGroups && !hazardGroups)) {
     return null;
   }
 

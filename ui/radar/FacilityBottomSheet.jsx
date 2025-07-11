@@ -96,10 +96,10 @@ const FacilityBottomSheet = ({ isLoading, ref, close }) => {
         shadowColor: "#000",
         shadowOpacity: 0.25,
         shadowRadius: 5,
-        zIndex: 1000,
+        zIndex: 1000000,
       }}
     >
-      <BottomSheetView style={{ flex: 1, backgroundColor: "#fffcfa" }}>
+      <BottomSheetView style={{ flex: 1, backgroundColor: "#fffcfa", zIndex: 1000000 }}>
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#F47C25" />
@@ -136,8 +136,8 @@ const FacilityBottomSheet = ({ isLoading, ref, close }) => {
             </BouncingButton>
             {facilityDirection.distance && (
               <View className="flex-column  items-start w-fit">
-                <Text className="ml-2 text-base font-tmedium text-secondary">Distance: {facilityDirection.distance}</Text>
-                <Text className="ml-2 text-base font-tmedium text-secondary">Duraction: {facilityDirection.duration}</Text>
+                <Text className="ml-2 text-base font-tmedium text-secondary">Distance: {facilityDirection.distance.toFixed(2)} KM~</Text>
+                <Text className="ml-2 text-base font-tmedium text-secondary">Duraction: {facilityDirection.duration} Minutes~</Text>
               </View>
             )}
           </View>

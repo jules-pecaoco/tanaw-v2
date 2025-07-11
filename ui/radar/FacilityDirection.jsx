@@ -1,7 +1,6 @@
 import { LineLayer, ShapeSource } from "@rnmapbox/maps";
 
 const FacilityDirection = ({ route, lineColor }) => {
-  console.log("FacilityDirection route:", route.geometry);
 
   return (
     <ShapeSource id="routeSource" shape={route.geometry} cluster={false}>

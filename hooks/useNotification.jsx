@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import useStore from "./useStore";
 
 export const useNotification = () => {
-  const { userLocation, setUserExpoToken, setUserNotificationLocation } = useStore();
+  const { userLocation, setUserExpoToken, setUserLocationNotification } = useStore();
   const [permissionStatus, setPermissionStatus] = useState(null);
 
   useEffect(() => {
@@ -34,17 +34,16 @@ export const useNotification = () => {
       });
 
       const token = tokenData.data;
-      console.log("Expo Push Token:", token);
 
       setUserExpoToken(token);
-      setUserNotificationLocation(userLocation);
+      setUserLocationNotification(userLocation);
 
       return true;
     } catch (error) {
       console.error("Error requesting notification permissions:", error);
       return false;
     }
-  }, [userLocation, setUserExpoToken, setUserNotificationLocation]); // Include dependencies
+  }, [userLocation, setUserExpoToken, setUserLocationNotification]); // Include dependencies
 
   return {
     permissionStatus,

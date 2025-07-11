@@ -8,13 +8,13 @@ import useStore from "../../hooks/useStore";
 
 const Location = () => {
   const { requestLocationPermission, isRequestingLocation } = useLocation();
-  const { userLocation } = useStore();
+  const { setUserLocation } = useStore();
 
   const handleLocationPermission = async () => {
     try {
-      await requestLocationPermission();
+      const coordinates = await requestLocationPermission();
+      setUserLocation(coordinates);
     } catch (error) {
-      console.log("Location permission denied or failed, proceeding with default value");
     }
 
     router.push("notification");

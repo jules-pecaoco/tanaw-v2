@@ -1,7 +1,6 @@
-// components/SearchComponent.jsx
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { ActivityIndicator, FlatList, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import useLocation from "../../hooks/useLocation";
 import useSearch from "../../hooks/useSearch";
@@ -9,10 +8,16 @@ import useStore from "../../hooks/useStore";
 
 const SearchScreen = () => {
   const { setSearchTerm, suggestions, isLoadingSuggestions, setSelectedPlaceId, selectedPlaceDetails, isLoadingDetails } = useSearch();
-  const { getCurrentLocation } = useLocation();
-  const { recentSearches, setRecentSearches } = useStore();
+  const { getCurrentLocation, getReverseGeocode } = useLocation();
+  const { recentSearches, setRecentSearches, setUserLocationNotification } = useStore();
   const [searchText, setSearchText] = useState("");
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [locationRetrieved, setLocationRetrieved] = useState(false);
+  const [currentLocationData, setCurrentLocationData] = useState(null);
+
+  // Modal state
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [selectedLocationForNotification, setSelectedLocationForNotification] = useState(null);
 
   const saveRecentSearches = async (searches) => {
     try {
@@ -37,10 +42,17 @@ const SearchScreen = () => {
 
     setSearchText("");
     setSearchTerm("");
+
+    setSelectedLocationForNotification(newSearch);
+    setShowNotificationModal(true);
   };
 
   const handleRecentSearchSelect = (recentSearch) => {
     setSelectedPlaceId(recentSearch.id);
+
+    // Show notification modal for recent search selection too
+    setSelectedLocationForNotification(recentSearch);
+    setShowNotificationModal(true);
   };
 
   const clearRecentSearches = () => {
@@ -59,39 +71,47 @@ const SearchScreen = () => {
       const location = await getCurrentLocation();
 
       if (location) {
-        // Create a location object similar to selectedPlaceDetails format
-        const currentLocationDetails = {
-          properties: {
-            name: "Current Location",
-            full_name: `Your current location (${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)})`,
-            coordinates: {
-              latitude: location.latitude,
-              longitude: location.longitude,
-            },
-          },
-        };
 
-        // You can handle the current location here - maybe save it to store or use it directly
-        console.log("Current location:", location);
+        setLocationRetrieved(true);
+        setCurrentLocationData(location);
 
-        // Optionally, you can add current location to recent searches
-        const currentLocationSearch = {
-          id: `current_location_${Date.now()}`,
+        const currentLocationForNotification = {
+          id: "current_location",
           name: "Current Location",
           fullName: `Your current location (${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)})`,
           timestamp: new Date().toISOString(),
-          isCurrentLocation: true,
+          coordinates: {
+            latitude: location.latitude,
+            longitude: location.longitude,
+          },
         };
-
-        const updatedRecentSearches = [currentLocationSearch, ...recentSearches.filter((item) => !item.isCurrentLocation)].slice(0, 5);
-        setRecentSearches(updatedRecentSearches);
-        saveRecentSearches(updatedRecentSearches);
+        await getReverseGeocode(location);
+        setSelectedLocationForNotification(currentLocationForNotification);
+        setShowNotificationModal(true);
       }
     } catch (error) {
       console.error("Error getting current location:", error);
+      setLocationRetrieved(false);
+      setCurrentLocationData(null);
     } finally {
       setIsGettingLocation(false);
     }
+  };
+
+  const handleNotificationResponse = (enableNotifications) => {
+    if (selectedLocationForNotification) {
+      const location = {
+        latitude: selectedPlaceDetails?.properties?.coordinates?.latitude || selectedLocationForNotification?.coordinates?.latitude,
+        longitude: selectedPlaceDetails?.properties?.coordinates?.latitude || selectedLocationForNotification?.coordinates?.longitude,
+      };
+
+      if (enableNotifications) {
+        setUserLocationNotification(location);
+      }
+    }
+
+    setShowNotificationModal(false);
+    setSelectedLocationForNotification(null);
   };
 
   const renderSuggestionItem = ({ item }) => (
@@ -116,7 +136,7 @@ const SearchScreen = () => {
       className="bg-background border-b border-secondary/10 px-4 py-3 flex-row items-center active:bg-primary/10"
     >
       <View className="bg-background rounded-full items-center justify-center">
-        <Ionicons name={item.isCurrentLocation ? "locate-outline" : "time-outline"} size={24} style={{ marginRight: 10 }} color="#secondary" />
+        <Ionicons name="time-outline" size={24} style={{ marginRight: 10 }} color="#secondary" />
       </View>
       <View className="flex-1">
         <Text className="text-secondary font-tmedium text-xl">{item.name}</Text>
@@ -124,6 +144,53 @@ const SearchScreen = () => {
       </View>
       <Ionicons name="chevron-forward" size={24} color="#secondary" />
     </TouchableOpacity>
+  );
+
+  const NotificationModal = () => (
+    <Modal visible={showNotificationModal} transparent animationType="fade" onRequestClose={() => setShowNotificationModal(false)}>
+      <View className="flex-1 justify-center items-center bg-black/50">
+        <View className="bg-background rounded-2xl mx-6 p-6 shadow-lg">
+          {/* Header */}
+          <View className="items-center mb-6">
+            <View className="w-16 h-16 bg-primary/10 rounded-full items-center justify-center mb-4">
+              <Ionicons name="notifications-outline" size={32} color="#primary" />
+            </View>
+            <Text className="text-primary text-xl font-tbold text-center">Location Notifications</Text>
+          </View>
+
+          {/* Content */}
+          <View className="mb-6">
+            <Text className="text-secondary text-base text-center mb-4">Would you like to receive weather alerts and notifications for</Text>
+            <View className="bg-primary/5 rounded-lg p-3 mb-4">
+              <Text className="text-primary font-tmedium text-center">{selectedLocationForNotification?.name}</Text>
+              {selectedLocationForNotification?.fullName !== selectedLocationForNotification?.name && (
+                <Text className="text-secondary/70 text-sm text-center mt-1">{selectedLocationForNotification?.fullName}</Text>
+              )}
+            </View>
+            <Text className="text-secondary/70 text-sm text-center">
+              You'll get timely updates about weather conditions, warnings, and forecasts for this location.
+            </Text>
+          </View>
+
+          {/* Buttons */}
+          <View className="flex-row space-x-3">
+            <TouchableOpacity
+              onPress={() => handleNotificationResponse(false)}
+              className="flex-1 bg-secondary/10 rounded-full py-3 px-4 active:bg-secondary/20"
+            >
+              <Text className="text-secondary font-tmedium text-center">Not Now</Text>
+            </TouchableOpacity>
+            <View className="px-2"></View>
+            <TouchableOpacity
+              onPress={() => handleNotificationResponse(true)}
+              className="flex-1 bg-primary rounded-full py-3 px-4 active:bg-primary/90"
+            >
+              <Text className="text-white font-tmedium text-center">Yes</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 
   return (
@@ -183,6 +250,19 @@ const SearchScreen = () => {
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
             />
+          </View>
+        )}
+
+        {/* Location Retrieved Message */}
+        {locationRetrieved && currentLocationData && (
+          <View className="mx-4 mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <View className="flex-row items-center">
+              <Ionicons name="checkmark-circle" size={20} color="#059669" />
+              <Text className="text-green-800 font-tmedium ml-2">Location Retrieved Successfully</Text>
+            </View>
+            <Text className="text-green-700 text-sm mt-1">
+              Coordinates: {currentLocationData.latitude.toFixed(4)}, {currentLocationData.longitude.toFixed(4)}
+            </Text>
           </View>
         )}
 
@@ -271,6 +351,9 @@ const SearchScreen = () => {
           </View>
         )}
       </ScrollView>
+
+      {/* Notification Modal */}
+      <NotificationModal />
     </View>
   );
 };
