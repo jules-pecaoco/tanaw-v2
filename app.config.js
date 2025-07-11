@@ -4,7 +4,7 @@ export default ({ config }) => ({
   ...config,
   name: "Tanaw",
   slug: "tanaw-v2",
-  version: "0.4.0",
+  version: "0.5.0",
   orientation: "portrait",
   icon: "./assets/images/logo_app.png",
   scheme: "tanaw",
@@ -20,7 +20,7 @@ export default ({ config }) => ({
       backgroundColor: "#ffffff",
     },
     edgeToEdgeEnabled: true,
-    googleServicesFile: "./google-services.json",
+    googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
   },
   web: {
     bundler: "metro",

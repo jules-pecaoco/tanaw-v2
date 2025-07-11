@@ -21,7 +21,7 @@ const searchPlacesByType = async (location: { latitude: number; longitude: numbe
     "Content-Type": "application/json",
     "X-Goog-Api-Key": apiKey,
     "X-Goog-FieldMask":
-      "places.displayName,places.types,places.location,places.internationalPhoneNumber,places.nationalPhoneNumber,places.primaryTypeDisplayName,places.shortFormattedAddress",
+      "places.displayName,places.types,places.location,places.internationalPhoneNumber,places.nationalPhoneNumber,places.primaryTypeDisplayName,places.shortFormattedAddress,places.location",
   };
 
   try {

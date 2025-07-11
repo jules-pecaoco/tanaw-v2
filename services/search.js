@@ -78,7 +78,7 @@ const searchCityDetails = async (cityId, session_token) => {
  * @returns {Promise<object>} - Route data
  */
 const fetchDirections = async (location, destination, profile = "driving") => {
-  console.log("Fetching directions from:", origin, "to:", destination);
+  console.log("Fetching directions from:", location, "to:", destination);
   try {
     const waypoints = `${location.longitude},${location.latitude};${destination.longitude},${destination.latitude}`;
     const params = new URLSearchParams({
@@ -101,7 +101,6 @@ const fetchDirections = async (location, destination, profile = "driving") => {
 
     if (data.routes && data.routes.length > 0) {
       const route = data.routes[0];
-      //GEOJSON format for the route
       return {
         coordinates: route.geometry.coordinates,
         distance: route.distance / 1000,

@@ -36,18 +36,23 @@ const useSearch = () => {
   });
 
   const getDirections = async (destination) => {
-    const directionsQueryKey = ["directions", userLocation, destination];
+    try {
+      const directionsQueryKey = ["directions", userLocation, destination];
+      const cachedDirections = queryClient.getQueryData(directionsQueryKey);
+      if (cachedDirections) {
+        console.log("Returning cached directions");
+        return cachedDirections;
+      }
 
-    const cachedDirections = queryClient.getQueryData(directionsQueryKey);
-    if (cachedDirections) {
-      console.log("Returning cached directions");
-      return cachedDirections;
+      const newDirections = await fetchDirections(userLocation, destination, "driving");
+      queryClient.setQueryData(directionsQueryKey, newDirections);
+      return newDirections;
+    } catch (error) {
+      console.error("Error in getDirections:", error);
+      throw error;
     }
-
-    const newDirections = await fetchDirections(userLocation, destination);
-    queryClient.setQueryData(directionsQueryKey, newDirections);
-    return newDirections;
   };
+
   useEffect(() => {
     if (selectedPlaceDetails) {
       setUserLocation({

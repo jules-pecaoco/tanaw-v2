@@ -4,10 +4,12 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, StatusBar, Text, TouchableOpacity, View } from "react-native";
 
+import useLocation from "../../hooks/useLocation";
 import useNotification from "../../hooks/useNotification";
 import useStore from "../../hooks/useStore";
 
 const NotificationScreen = () => {
+  const { getReverseGeocode } = useLocation();
   const { requestPermissionsAndGetToken } = useNotification();
   const { setUserId } = useStore();
 
@@ -16,6 +18,7 @@ const NotificationScreen = () => {
   const handleAllowAccess = async () => {
     setIsLoading(true);
     await requestPermissionsAndGetToken();
+    await getReverseGeocode();
     setIsLoading(false);
     setUserId("guest");
     router.replace("/(drawer)/radar");

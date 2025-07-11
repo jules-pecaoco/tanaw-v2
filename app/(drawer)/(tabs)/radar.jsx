@@ -9,6 +9,7 @@ import useStore from "../../../hooks/useStore";
 import useWeatherData from "../../../hooks/useWeatherData";
 
 import FacilityBottomSheet from "../../../ui/radar/FacilityBottomSheet";
+import FacilityDirection from "../../../ui/radar/FacilityDirection";
 import FacilityPoint from "../../../ui/radar/FacilityPoint";
 import HazardLayer from "../../../ui/radar/HazardLayer";
 import LayersSettings from "../../../ui/radar/LayersSettings";
@@ -25,7 +26,7 @@ const areCoordinatesEqual = (coord1, coord2, tolerance = 0.0001) => {
 };
 
 const RadarScreen = () => {
-  const { userLocation, openGroups, setIsMapCentered, visibleLayers, currentTileUrlTemplate } = useStore();
+  const { userLocation, openGroups, facilityDirection, setIsMapCentered, visibleLayers, currentTileUrlTemplate } = useStore();
   const { hazardLayers, weatherLayers, isLoading: weatherIsLoading, isRefetching: weatherIsRefetching } = useWeatherData();
   const { facilitiesData, isLoading: facilitiesIsLoading, isRefetching: facilitiesIsRefetching } = useFacilitiesData();
 
@@ -170,9 +171,10 @@ const RadarScreen = () => {
                     })
                     .flatMap((layer) => {
                       return (
-                        layer.nearbyLocationWeather?.map((data) => (
-                          <WeatherPoint key={`${layer.id}_${data.lat}_${data.lon}`} id={`${layer.id}_${data.name}`} data={data} />
-                        )) || []
+                        layer.nearbyLocationWeather?.map((data) => {
+                          const key = `${layer.id}_${data.name}_${data.latitude}_${data.longitude}`;
+                          return <WeatherPoint key={key} id={`${layer.id}_${data.name}`} data={data} />;
+                        }) || []
                       );
                     })
                 : []
@@ -183,8 +185,13 @@ const RadarScreen = () => {
             facilitiesData?.map((facility) => (
               <FacilityPoint data={facility} key={`${facility.name}_${facility.latitude}_${facility.longitude}`} open={openFacilityBottomSheet} />
             ))}
+
+          {/* FACILITIES DIRECTION */}
+          {facilityDirection.geometry && <FacilityDirection route={facilityDirection} lineColor={facilityDirection.lineColor} />}
         </MapView>
       </View>
+
+      {/* NOT IN MAPVIEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW */}
       {/* TIMESTAMP */}
       {weatherLayers?.weatherGroups &&
         weatherLayers.weatherGroups.flatMap((group) =>

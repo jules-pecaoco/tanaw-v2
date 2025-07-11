@@ -3,13 +3,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
+import useLocation from "../../hooks/useLocation";
 import useSearch from "../../hooks/useSearch";
 import useStore from "../../hooks/useStore";
 
 const SearchScreen = () => {
   const { setSearchTerm, suggestions, isLoadingSuggestions, setSelectedPlaceId, selectedPlaceDetails, isLoadingDetails } = useSearch();
+  const { getCurrentLocation } = useLocation();
   const { recentSearches, setRecentSearches } = useStore();
   const [searchText, setSearchText] = useState("");
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   const saveRecentSearches = async (searches) => {
     try {
@@ -50,6 +53,47 @@ const SearchScreen = () => {
     setSearchTerm(text);
   };
 
+  const handleGetCurrentLocation = async () => {
+    try {
+      setIsGettingLocation(true);
+      const location = await getCurrentLocation();
+
+      if (location) {
+        // Create a location object similar to selectedPlaceDetails format
+        const currentLocationDetails = {
+          properties: {
+            name: "Current Location",
+            full_name: `Your current location (${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)})`,
+            coordinates: {
+              latitude: location.latitude,
+              longitude: location.longitude,
+            },
+          },
+        };
+
+        // You can handle the current location here - maybe save it to store or use it directly
+        console.log("Current location:", location);
+
+        // Optionally, you can add current location to recent searches
+        const currentLocationSearch = {
+          id: `current_location_${Date.now()}`,
+          name: "Current Location",
+          fullName: `Your current location (${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)})`,
+          timestamp: new Date().toISOString(),
+          isCurrentLocation: true,
+        };
+
+        const updatedRecentSearches = [currentLocationSearch, ...recentSearches.filter((item) => !item.isCurrentLocation)].slice(0, 5);
+        setRecentSearches(updatedRecentSearches);
+        saveRecentSearches(updatedRecentSearches);
+      }
+    } catch (error) {
+      console.error("Error getting current location:", error);
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
+
   const renderSuggestionItem = ({ item }) => (
     <TouchableOpacity
       onPress={() => handleSelectSuggestion(item)}
@@ -71,8 +115,8 @@ const SearchScreen = () => {
       onPress={() => handleRecentSearchSelect(item)}
       className="bg-background border-b border-secondary/10 px-4 py-3 flex-row items-center active:bg-primary/10"
     >
-      <View className=" bg-background rounded-full items-center justify-center">
-        <Ionicons name="time-outline" size={24} style={{ marginRight: 10 }} color="#secondary" />
+      <View className="bg-background rounded-full items-center justify-center">
+        <Ionicons name={item.isCurrentLocation ? "locate-outline" : "time-outline"} size={24} style={{ marginRight: 10 }} color="#secondary" />
       </View>
       <View className="flex-1">
         <Text className="text-secondary font-tmedium text-xl">{item.name}</Text>
@@ -83,7 +127,7 @@ const SearchScreen = () => {
   );
 
   return (
-    <View className="flex-1  p-2 bg-background">
+    <View className="flex-1 p-2 bg-background">
       {/* Search Header */}
       <View className="bg-background rounded-full px-4">
         {/* Search Input */}
@@ -107,6 +151,16 @@ const SearchScreen = () => {
           )}
         </View>
       </View>
+
+      {/* Current Location Button */}
+      <TouchableOpacity
+        onPress={handleGetCurrentLocation}
+        disabled={isGettingLocation}
+        className="bg-primary/10 border border-primary/20 rounded-full mx-4 mt-3 py-3 px-4 flex-row items-center justify-center active:bg-primary/20"
+      >
+        {isGettingLocation ? <ActivityIndicator size="small" color="#primary" /> : <Ionicons name="locate" size={20} color="#primary" />}
+        <Text className="text-primary font-tmedium text-base ml-2">{isGettingLocation ? "Getting location..." : "Use Current Location"}</Text>
+      </TouchableOpacity>
 
       {/* Content Area */}
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -135,7 +189,7 @@ const SearchScreen = () => {
         {/* Recent Searches */}
         {recentSearches.length > 0 && suggestions.length === 0 && !isLoadingSuggestions && searchText.length === 0 && (
           <View className="mt-2">
-            <View className="flex-row items-center justify-between px-4 py-2 bg-primary/5">
+            <View className="flex-row items-center justify-between px-4 py-2">
               <Text className="text-secondary text-sm font-tmedium">RECENT SEARCHES</Text>
               <TouchableOpacity onPress={clearRecentSearches}>
                 <Text className="text-primary text-sm font-tmedium">Clear</Text>

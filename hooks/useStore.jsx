@@ -7,14 +7,21 @@ const useStore = create(
   persist(
     (set, get) => ({
       // DEFAULT VALUES
+      // unique identifier
       userId: null,
+      // push token
       userExpoToken: null,
+      // user location
       userLocation: {
         latitude: 10.657643611417026,
         longitude: 122.9481023926049,
       },
+      //user location for notifations
       userNotificationLocation: {},
+      // user location name
       userLocationName: "Bacolod City",
+      //facility destination
+      facilityDirection: {},
 
       // SEARCHES
       recentSearches: [],
@@ -41,6 +48,9 @@ const useStore = create(
       setUserExpoToken: (expoToken) => set({ userExpoToken: expoToken }),
       setUserLocationNotification: (location) => set({ userNotificationLocation: location }),
       setUserLocationName: (name) => set({ userLocationName: name }),
+
+      
+      setFacilityDirection: (direction) => set({ facilityDirection: direction }),
 
       // SEARCHES
       setRecentSearches: (searches) => set({ recentSearches: searches }),
