@@ -1,11 +1,14 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// Import the Google AI SDK
+import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// --- Interfaces ---
 interface HazardReport {
   expo_token: string;
   media_files: Array<{
@@ -21,15 +24,14 @@ interface HazardReport {
 
 interface LLMAnalysis {
   is_hazard: boolean;
-  confidence: number;
   type?: string;
   sub_type?: string;
   description?: string;
   reason?: string;
 }
 
+// --- Main Server Logic ---
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -39,78 +41,96 @@ serve(async (req) => {
 
     const { expo_token, media_files, location }: HazardReport = await req.json();
 
-    // Validate input
-    if (!expo_token || !media_files || !location) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+    if (!expo_token || !media_files || media_files.length === 0 || !location) {
+      return new Response(JSON.stringify({ error: "Missing or invalid required fields" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Upload media files to Supabase Storage
+    // --- Media Upload & Preparation ---
     const uploadedPaths: string[] = [];
+    const mediaForAnalysis: { mimeType: string; data: string }[] = [];
 
     for (const mediaFile of media_files) {
-      const fileName = `${Date.now()}-${mediaFile.name}`;
-      const filePath = `reports/${fileName}`;
+      if (mediaFile.type !== "image") continue; // Gemini Vision currently works best with images
 
-      // Convert base64 to blob if needed
       const response = await fetch(mediaFile.uri);
       const blob = await response.blob();
+      const arrayBuffer = await blob.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
-      const { data, error } = await supabase.storage.from("hazard-media").upload(filePath, blob, {
-        contentType: mediaFile.type === "image" ? "image/jpeg" : "video/mp4",
+      // Prepare for LLM analysis first to avoid unnecessary uploads
+      mediaForAnalysis.push({
+        mimeType: blob.type || "image/jpeg",
+        data: base64,
       });
-
-      if (error) {
-        console.error("Upload error:", error);
-        continue;
-      }
-
-      uploadedPaths.push(data.path);
     }
 
-    if (uploadedPaths.length === 0) {
-      return new Response(JSON.stringify({ error: "Failed to upload media files" }), {
-        status: 500,
+    if (mediaForAnalysis.length === 0) {
+      return new Response(JSON.stringify({ error: "No valid images found for analysis." }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Analyze media with LLM (using Ollama as free option)
-    const analysis = await analyzeWithLLM(uploadedPaths, supabase);
+    // --- LLM Analysis ---
+    const analysis = await analyzeMediaWithGemini(mediaForAnalysis);
 
     if (!analysis.is_hazard) {
-      // Clean up uploaded files if not a hazard
-      for (const path of uploadedPaths) {
-        await supabase.storage.from("hazard-media").remove([path]);
-      }
-
       return new Response(
         JSON.stringify({
           success: false,
-          reason: analysis.reason || "The submitted content does not appear to be a hazard or natural disaster.",
+          reason: analysis.reason || "The submitted media does not appear to contain a hazard.",
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Save to database
-    const { data, error } = await supabase
+    // --- Media Upload (only if it's a confirmed hazard) ---
+    for (const mediaFile of media_files) {
+      if (mediaFile.type !== "image") continue;
+
+      const response = await fetch(mediaFile.uri);
+      const blob = await response.blob();
+
+      const fileName = `${crypto.randomUUID()}-${mediaFile.name}`;
+      const filePath = `reports/${fileName}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage.from("hazard-media").upload(filePath, blob, {
+        contentType: blob.type || "image/jpeg",
+      });
+
+      if (uploadError) {
+        console.error("Upload error after confirmation:", uploadError.message);
+        continue;
+      }
+      uploadedPaths.push(uploadData.path);
+    }
+
+    if (uploadedPaths.length === 0) {
+      return new Response(JSON.stringify({ error: "Hazard detected, but media upload failed." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: insertData, error: insertError } = await supabase
       .from("user_reports")
       .insert({
-        expo_token,
-        type: analysis.type || "unknown",
+        expo_token: expo_token,
+        type: analysis.type || "general_hazard",
         sub_type: analysis.sub_type,
         description: analysis.description,
         media_path: uploadedPaths,
         location: `POINT(${location.longitude} ${location.latitude})`,
       })
-      .select();
+      .select("id")
+      .single();
 
-    if (error) {
-      console.error("Database error:", error);
-      return new Response(JSON.stringify({ error: "Failed to save report" }), {
+    if (insertError) {
+      console.error("Database insert error:", insertError);
+      await supabase.storage.from("hazard-media").remove(uploadedPaths);
+      return new Response(JSON.stringify({ error: "Failed to save the report to the database", insertError }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -119,131 +139,71 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        report_id: data[0].id,
-        message: "Hazard report submitted successfully",
+        report_id: insertData.id,
+        message: "Hazard report submitted successfully.",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Function error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "An internal server error occurred." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
 
-async function analyzeWithLLM(mediaPaths: string[], supabase: any): Promise<LLMAnalysis> {
-  try {
-    // Using Ollama with llava model (free, local LLM with vision capabilities)
-    // You'll need to set up Ollama server or use alternative free vision LLM
-
-    // For now, using a simple heuristic + free vision API
-    // Replace with actual LLM call
-    const analysis = await callVisionLLM(mediaPaths, supabase);
-    return analysis;
-  } catch (error) {
-    console.error("LLM analysis error:", error);
-    // Fallback to manual review
-    return {
-      is_hazard: true, // Conservative approach - let humans review
-      confidence: 0.5,
-      type: "unknown",
-      description: "Requires manual review",
-    };
+// --- Gemini Analysis Function ---
+async function analyzeMediaWithGemini(media: { mimeType: string; data: string }[]): Promise<LLMAnalysis> {
+  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+  if (!GEMINI_API_KEY) {
+    console.error("GEMINI_API_KEY is not set.");
+    return { is_hazard: false, reason: "Server configuration error." };
   }
-}
 
-async function callVisionLLM(mediaPaths: string[], supabase: any): Promise<LLMAnalysis> {
-  // Using Hugging Face Inference API (free tier available)
-  const HF_TOKEN = Deno.env.get("HUGGING_FACE_TOKEN"); // Free API key
+  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash-latest",
+    generationConfig: {
+      response_mime_type: "application/json",
+    },
+  });
 
-  try {
-    // Get first image for analysis
-    const { data } = await supabase.storage.from("hazard-media").download(mediaPaths[0]);
+  const prompt = `
+    You are an expert hazard analysis AI for a community safety program. Analyze the following image(s) to identify potential hazards or natural disasters that could cause human harm.
 
-    const arrayBuffer = await data.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-
-    // Using BLIP-2 or similar free vision model
-    const response = await fetch("https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large", {
-      headers: {
-        Authorization: `Bearer ${HF_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      body: JSON.stringify({
-        inputs: base64,
-        parameters: {
-          max_length: 100,
-        },
-      }),
-    });
-
-    const result = await response.json();
-    const description = result[0]?.generated_text || "";
-
-    // Simple keyword matching for hazard detection
-    const hazardKeywords = [
-      "flood",
-      "flooding",
-      "water damage",
-      "storm",
-      "hurricane",
-      "tornado",
-      "earthquake",
-      "landslide",
-      "fire",
-      "wildfire",
-      "smoke",
-      "damage",
-      "destruction",
-      "emergency",
-      "disaster",
-      "debris",
-      "collapsed",
-      "broken",
-      "dangerous",
-      "hazard",
-      "accident",
-      "crash",
-    ];
-
-    const isHazard = hazardKeywords.some((keyword) => description.toLowerCase().includes(keyword));
-
-    let type = "unknown";
-    let subType = "";
-
-    if (isHazard) {
-      if (description.includes("flood") || description.includes("water")) {
-        type = "flood";
-        subType = "water_damage";
-      } else if (description.includes("fire") || description.includes("smoke")) {
-        type = "fire";
-        subType = "wildfire";
-      } else if (description.includes("storm") || description.includes("wind")) {
-        type = "storm";
-        subType = "wind_damage";
-      } else if (description.includes("earthquake")) {
-        type = "earthquake";
-        subType = "structural_damage";
-      }
+    Respond ONLY with a valid JSON object based on the following schema.
+    {
+      "is_hazard": boolean,
+      "type": "Flood" | "Fire" | "Storm" | "Earthquake" | "Landslide" | "Accident" | "Other" | null,
+      "sub_type": "flash_flood" | "wildfire" | "structural_damage" | "vehicle_crash" | "power_line_down" | "road_blockage" | string | null,
+      "description": "A brief, human-like description from the perspective of a concerned community member. Example: 'It looks like the heavy rain caused flash flooding on Main Street by the bridge. The road is completely underwater and unsafe for cars.'" | null,
+      "reason": "If 'is_hazard' is false, provide a brief reason why." | null
     }
 
-    return {
-      is_hazard: isHazard,
-      confidence: isHazard ? 0.8 : 0.2,
-      type,
-      sub_type: subType,
-      description,
-      reason: isHazard ? undefined : "The image does not show clear signs of a hazard or natural disaster.",
-    };
+    Analyze the image(s) and return the JSON.
+  `;
+
+  try {
+    const imageParts = media.map((m) => ({
+      inlineData: {
+        data: m.data,
+        mimeType: m.mimeType,
+      },
+    }));
+
+    const result = await model.generateContent([prompt, ...imageParts]);
+    const response = result.response;
+    const responseText = response.text();
+
+    // The response should be a clean JSON string because of response_mime_type
+    const parsedAnalysis: LLMAnalysis = JSON.parse(responseText);
+    return parsedAnalysis;
   } catch (error) {
-    console.error("Vision LLM error:", error);
+    console.error("Gemini API or JSON parsing error:", error);
     return {
       is_hazard: false,
-      confidence: 0.1,
-      reason: "Unable to analyze media content",
+      reason: "Failed to analyze media due to a technical issue. Please review manually.",
     };
   }
 }

@@ -44,14 +44,29 @@ export default function HazardReportForm() {
 
     Alert.alert("Capture Media", "Choose what to capture", [
       { text: "Take Photo", onPress: () => openCamera() },
-      { text: "Record Video (15s max)", onPress: () => openCamera() },
+      { text: "Record Video (15s max)", onPress: () => openVideo() },
       { text: "Cancel", style: "cancel" },
     ]);
   };
 
   const openCamera = async () => {
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ["images", "videos"],
+      mediaTypes: ["images"],
+      allowsEditing: false,
+      quality: 0.7,
+
+      //
+      videoMaxDuration: 15,
+    });
+
+    if (!result.canceled) {
+      await processSelectedMedia(result.assets[0]);
+    }
+  };
+
+  const openVideo = async () => {
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["videos"],
       allowsEditing: false,
       quality: 0.7,
 
@@ -132,7 +147,6 @@ export default function HazardReportForm() {
   };
 
   return (
-    // Use a ScrollView with a background color that matches your app's theme
     <ScrollView className="flex-1 bg-gray-100" contentContainerStyle={{ paddingBottom: 40 }}>
       <View className="p-5">
         {/* --- Header Section --- */}
