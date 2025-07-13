@@ -4,7 +4,7 @@ export default ({ config }) => ({
   ...config,
   name: "Tanaw",
   slug: "tanaw-v2",
-  version: "0.5.0",
+  version: "0.7.0",
   orientation: "portrait",
   icon: "./assets/images/logo_app.png",
   scheme: "tanaw",
@@ -66,6 +66,7 @@ export default ({ config }) => ({
         RNMapboxMapsDownloadToken: process.env.EXPO_PUBLIC_MAPBOX_SECRET_TOKEN,
       },
     ],
+    ["react-native-compressor"]
   ],
   experiments: {
     typedRoutes: true,

@@ -18,9 +18,8 @@ const useWeatherData = () => {
 
   return {
     currentWeather,
-    hourlyWeather,
+      hourlyWeather,
     dailyWeather,
-    citiesWeather,
     weatherLayers,
     hazardLayers,
     isLoading,

@@ -1,23 +1,25 @@
-import Mapbox, { Camera, FillExtrusionLayer, MapView, UserLocation, VectorSource } from "@rnmapbox/maps";
+import Mapbox, { Camera, FillExtrusionLayer, Images, MapView, UserLocation, VectorSource } from "@rnmapbox/maps";
 import { useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
+
+import { icons } from "../../../constants/index";
 
 import { parseLayerConfigToProps } from "../../../utilities/mapStyleParser";
 
 import useFacilitiesData from "../../../hooks/useFacilitiesData";
 import useStore from "../../../hooks/useStore";
-import useWeatherData from "../../../hooks/useWeatherData";
 import useUserInfo from "../../../hooks/useUserInfo";
+import useWeatherData from "../../../hooks/useWeatherData";
 
 import FacilityBottomSheet from "../../../ui/radar/FacilityBottomSheet";
 import FacilityDirection from "../../../ui/radar/FacilityDirection";
-import FacilityPoint from "../../../ui/radar/FacilityPoint";
+import FacilityPoints from "../../../ui/radar/FacilityPoints";
 import HazardLayer from "../../../ui/radar/HazardLayer";
 import LayersSettings from "../../../ui/radar/LayersSettings";
 import SideButtons from "../../../ui/radar/SideButtons";
 import TimeStamp from "../../../ui/radar/TimeStamp";
 import WeatherLayer from "../../../ui/radar/WeatherLayer";
-import WeatherPoint from "../../../ui/radar/WeatherPoint";
+import WeatherPoints from "../../../ui/radar/WeatherPoints";
 
 const areCoordinatesEqual = (coord1, coord2, tolerance = 0.0001) => {
   if (!coord1 || !coord2) return false;
@@ -94,7 +96,15 @@ const RadarScreen = () => {
             }}
           />
 
-          <UserLocation></UserLocation>
+          <UserLocation />
+
+          <Images
+            images={{
+              hospital: icons.hospitals,
+              fire_station: icons.firestations,
+              evac_site: icons.evacsites,
+            }}
+          />
 
           {/* 3D BUILDINGS */}
           <VectorSource id="composite" url="mapbox://mapbox.mapbox-streets-v8">
@@ -169,22 +179,12 @@ const RadarScreen = () => {
                       const layerKey = `${group.id}_${layer.id}`;
                       return visibleLayers.weather === layerKey;
                     })
-                    .flatMap((layer) => {
-                      return (
-                        layer.nearbyLocationWeather?.map((data) => {
-                          const key = `${layer.id}_${data.name}_${data.lat}_${data.lon}`;
-                          return <WeatherPoint key={key} id={`${layer.id}_${data.name}`} data={data} />;
-                        }) || []
-                      );
-                    })
+                    .flatMap((layer) => (layer?.nearbyLocationWeather ? <WeatherPoints key={layer.id} datas={layer.nearbyLocationWeather} /> : []))
                 : []
             )}
 
           {/* FACILITIES POINTS */}
-          {facilitiesData &&
-            facilitiesData?.map((facility) => (
-              <FacilityPoint data={facility} key={`${facility.name}_${facility.latitude}_${facility.longitude}`} open={openFacilityBottomSheet} />
-            ))}
+          {facilitiesData && <FacilityPoints datas={facilitiesData} open={openFacilityBottomSheet} />}
 
           {/* FACILITIES DIRECTION */}
           {facilityDirection.geometry && <FacilityDirection route={facilityDirection} lineColor={facilityDirection.lineColor} />}

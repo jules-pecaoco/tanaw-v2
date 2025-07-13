@@ -76,7 +76,7 @@ const currentWeather = async (lat: string, lon: string, apiKey: string) => {
     const data = await response.json();
     return {
       currentWeather: {
-        weather: data.weather[0],
+        weather: extractWeatherArrayData(data.weather[0]),
         heat_index: data.main.feels_like,
         date: dtToISOString(data.dt),
       },
@@ -88,7 +88,7 @@ const currentWeather = async (lat: string, lon: string, apiKey: string) => {
 
 const hourlyWeather = async (lat: string, lon: string, apiKey: string) => {
   try {
-    const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&cnt=12&units=metric&appid=${apiKey}`;
+    const url = `https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=${lat}&lon=${lon}&cnt=12&units=metric&appid=${apiKey}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Error fetching hourly weather: ${response.statusText}`);

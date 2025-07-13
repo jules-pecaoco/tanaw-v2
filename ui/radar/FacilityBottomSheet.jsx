@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import * as Linking from "expo-linking";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import useSearch from "../../hooks/useSearch";
@@ -39,10 +39,12 @@ const openPhoneDialer = (phoneNumber) => {
 };
 
 const FacilityBottomSheet = ({ isLoading, ref, close }) => {
+  console.log;
   const { showFacilityBottomSheet, facilityBottomSheetData, facilityDirection, setFacilityDirection } = useStore();
   const { getDirections } = useSearch();
   const { name, short_address, international_phone_number, national_phone_number, category, latitude, longitude } = facilityBottomSheetData || {};
   const [directionIsLoading, setDirectionIsLoading] = useState(false);
+  const snapPoints = useMemo(() => ["30%"], []);
 
   const handleDirection = async () => {
     setDirectionIsLoading(true);
@@ -80,7 +82,7 @@ const FacilityBottomSheet = ({ isLoading, ref, close }) => {
       ref={ref}
       index={showFacilityBottomSheet ? 0 : -1}
       enablePanDownToClose={true}
-      snapPoints={["30%"]}
+      snapPoints={snapPoints}
       backgroundStyle={{ backgroundColor: "white" }}
       detached={true}
       handleComponent={() => (

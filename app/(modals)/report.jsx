@@ -1,4 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -6,12 +7,8 @@ import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, Vi
 import useLocation from "../../hooks/useLocation";
 import useStore from "../../hooks/useStore";
 
-import { supabase } from "../../services/supabase";
-// import { compressImage, compressVideo } from "../../utilities/mediaCompression";
-
-const compressImage = async (uri, quality = 0.7) => {};
-
-const compressVideo = async (uri) => {};
+import supabase from "../../services/supabase";
+import { compressImage, compressVideo } from "../../utilities/mediaCompression";
 
 export default function HazardReportForm() {
   const { userExpoToken } = useStore();
@@ -30,8 +27,16 @@ export default function HazardReportForm() {
   }, []);
 
   const pickMedia = async () => {
-    if (media.length >= 3) {
-      Alert.alert("Limit reached", "You can only add up to 3 media files");
+    const images = media.filter((m) => m.type === "image");
+    const videos = media.filter((m) => m.type === "video");
+
+    if (images.length > 0 && videos.length > 0) {
+      Alert.alert("Invalid", "Cannot mix images and video.");
+      return;
+    }
+
+    if (videos.length >= 1 || images.length >= 3) {
+      Alert.alert("Limit reached", "You can only upload 1 video or 3 images.");
       return;
     }
 
@@ -54,8 +59,6 @@ export default function HazardReportForm() {
       mediaTypes: ["images"],
       allowsEditing: false,
       quality: 0.7,
-
-      //
       videoMaxDuration: 15,
     });
 
@@ -69,8 +72,6 @@ export default function HazardReportForm() {
       mediaTypes: ["videos"],
       allowsEditing: false,
       quality: 0.7,
-
-      //
       videoMaxDuration: 15,
     });
 
@@ -104,9 +105,55 @@ export default function HazardReportForm() {
     setMedia((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const submitReport = async () => {
+  // Helper function to validate media requirements
+  const validateMediaRequirements = () => {
     if (media.length === 0) {
-      Alert.alert("Error", "Please add at least one photo or video");
+      return { isValid: false, message: "Please add at least one photo or video" };
+    }
+
+    const images = media.filter((item) => item.type === "image");
+    const videos = media.filter((item) => item.type === "video");
+
+    // Check if we have at least 3 images OR at least 1 video
+    if (images.length >= 3 || videos.length >= 1) {
+      return { isValid: true, message: "" };
+    }
+
+    return {
+      isValid: false,
+      message: "Please add at least 3 images or 1 video (15 seconds max)",
+    };
+  };
+
+  const uploadToSupabase = async (file, name) => {
+    name = name || `${file.type}_${Date.now()}.${file.type === "image" ? "jpg" : "mp4"}`;
+    const fileExt = name.split(".").pop();
+    const filePath = `tmp/${name}`;
+
+    const { data, error } = await supabase.storage.from("hazard-media").upload(
+      filePath,
+      {
+        uri: file.uri,
+        type: file.type === "image" ? "image/jpeg" : "video/mp4",
+        name,
+      },
+      {
+        contentType: file.type === "image" ? "image/jpeg" : "video/mp4",
+        upsert: true,
+      }
+    );
+
+    if (error) {
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+
+    return filePath;
+  };
+
+  const submitReport = async () => {
+    const validation = validateMediaRequirements();
+    if (!validation.isValid) {
+      Alert.alert("Error", validation.message);
       return;
     }
 
@@ -118,25 +165,37 @@ export default function HazardReportForm() {
     try {
       setSubmitting(true);
 
-      const expoToken = userExpoToken;
+      const uploadedMedia = [];
+      for (const file of media) {
+        const uploadedPath = await uploadToSupabase(file, file.name);
+        uploadedMedia.push({
+          uri: uploadedPath,
+          type: file.type,
+          name: file.name || `${file.type}_${Date.now()}`,
+        });
+        console.log("Uploaded media:", uploadedPath);
+      }
 
       const { data, error } = await supabase.functions.invoke("reports-service", {
         body: {
-          expo_token: expoToken,
-          media_files: media,
+          expo_token: userExpoToken,
+          media_files: uploadedMedia,
           location: location,
         },
       });
 
-      if (error) {
-        throw error;
+      if (error && error instanceof FunctionsHttpError) {
+        const errorMessage = await error.context.json();
+        console.log("Function returned an error", errorMessage);
+        Alert.alert("Error", errorMessage.error || "An error occurred.");
+        return;
       }
 
-      if (data.success) {
+      if (data?.success) {
         Alert.alert("Success", data.message);
         setMedia([]);
       } else {
-        Alert.alert("Report Rejected", data.reason);
+        Alert.alert("Report Rejected", data.reason || "No hazard detected.");
       }
     } catch (error) {
       console.error("Submit error:", error);
@@ -146,14 +205,19 @@ export default function HazardReportForm() {
     }
   };
 
+  // Check if submit button should be enabled
+  const isSubmitEnabled = () => {
+    const validation = validateMediaRequirements();
+    return validation.isValid && location && !submitting;
+  };
+
   return (
     <ScrollView className="flex-1 bg-gray-100" contentContainerStyle={{ paddingBottom: 40 }}>
       <View className="p-5">
         {/* --- Header Section --- */}
         <Text className="text-3xl font-tbold text-gray-800 text-center mb-2">Report a Hazard</Text>
-        <Text className="text-base font-tregular text-gray-500 text-center mb-8">
-          Your submission helps keep the community safe. Please provide clear media.
-        </Text>
+        <Text className="text-base font-tregular text-gray-500 text-center mb-2">Your submission helps keep the community safe.</Text>
+        <Text className="text-sm font-tregular text-gray-400 text-center mb-8">Required: At least 3 images or 1 video (15s max)</Text>
 
         {/* --- Media Upload Section --- */}
         <View className="bg-white p-4 rounded-2xl shadow-sm mb-6">
@@ -168,6 +232,12 @@ export default function HazardReportForm() {
               <View key={index} className="w-1/3 p-1">
                 <View className="relative">
                   <Image source={{ uri: item.uri }} className="w-full h-24 rounded-lg" />
+                  {/* Video indicator */}
+                  {item.type === "video" && (
+                    <View className="absolute bottom-1 left-1 bg-black bg-opacity-50 px-2 py-1 rounded">
+                      <Text className="text-white text-xs">VIDEO</Text>
+                    </View>
+                  )}
                   <TouchableOpacity
                     onPress={() => removeMedia(index)}
                     className="absolute -top-1 -right-1 bg-red-500 w-6 h-6 rounded-full items-center justify-center border-2 border-white"
@@ -211,9 +281,8 @@ export default function HazardReportForm() {
         <View className="mt-10">
           <TouchableOpacity
             onPress={submitReport}
-            disabled={submitting || media.length === 0 || !location}
-            // Use opacity for disabled state, a common and clean pattern
-            className="bg-primary py-4 rounded-full flex-row items-center justify-center shadow-lg opacity-100 disabled:opacity-50"
+            disabled={!isSubmitEnabled()}
+            className={`py-4 rounded-full flex-row items-center justify-center shadow-lg ${isSubmitEnabled() ? "bg-primary" : "bg-gray-400"}`}
           >
             {submitting ? <ActivityIndicator size="small" color="white" /> : <Ionicons name="send" size={20} color="white" />}
             <Text className="text-white text-lg font-tbold ml-3">{submitting ? "Submitting..." : "Submit Report"}</Text>

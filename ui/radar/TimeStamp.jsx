@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Text, View } from "react-native";
 import useStore from "../../hooks/useStore";
-import { convertUnixToISO, formatTo12HourTime } from "../../utilities/timeFormatter";
+import { convertUnixToISO, formatTo12HourTime } from "../../utilities/dateTimeFormatter";
 import BouncingButton from "../components/BouncingButton";
 
 const AddUnixTime = (value, interval) => {

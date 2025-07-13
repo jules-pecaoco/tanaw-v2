@@ -1,25 +1,17 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-// Import the Google AI SDK
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Content-Type": "application/json",
 };
 
-// --- Interfaces ---
 interface HazardReport {
   expo_token: string;
-  media_files: Array<{
-    uri: string;
-    type: "image" | "video";
-    name: string;
-  }>;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
+  media_files: Array<{ uri: string; type: "image" | "video"; name: string }>;
+  location: { latitude: number; longitude: number };
 }
 
 interface LLMAnalysis {
@@ -30,94 +22,169 @@ interface LLMAnalysis {
   reason?: string;
 }
 
-// --- Main Server Logic ---
+interface ErrorResponse {
+  success: false;
+  error: string;
+  error_code: string;
+  details?: any;
+  timestamp: string;
+}
+
+interface SuccessResponse {
+  success: true;
+  report_id: string;
+  message: string;
+  timestamp: string;
+  warnings?: {
+    uploadErrors?: string[];
+    mediaProcessingErrors?: string[];
+  };
+}
+
+function createErrorResponse(error: string, errorCode: string, details?: any): ErrorResponse {
+  return {
+    success: false,
+    error,
+    error_code: errorCode,
+    details,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function createSuccessResponse(reportId: string, message: string): SuccessResponse {
+  return {
+    success: true,
+    report_id: reportId,
+    message,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const binary = new Uint8Array(buffer).reduce((acc, byte) => acc + String.fromCharCode(byte), "");
+  return btoa(binary);
+}
+
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !supabaseKey) {
+      return new Response(JSON.stringify(createErrorResponse("Missing Supabase credentials", "CONFIG_ERROR")), { status: 500, headers: corsHeaders });
+    }
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { expo_token, media_files, location }: HazardReport = await req.json();
-
-    if (!expo_token || !media_files || media_files.length === 0 || !location) {
-      return new Response(JSON.stringify({ error: "Missing or invalid required fields" }), {
+    let requestBody: HazardReport;
+    try {
+      requestBody = await req.json();
+    } catch (parseError) {
+      return new Response(JSON.stringify(createErrorResponse("Invalid JSON", "PARSE_ERROR", { parseError: parseError.message })), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: corsHeaders,
       });
     }
 
-    // --- Media Upload & Preparation ---
+    const { expo_token, media_files, location } = requestBody;
+    if (!expo_token || !media_files?.length || typeof location.latitude !== "number" || typeof location.longitude !== "number") {
+      return new Response(JSON.stringify(createErrorResponse("Missing required fields", "VALIDATION_ERROR")), { status: 400, headers: corsHeaders });
+    }
+
     const uploadedPaths: string[] = [];
     const mediaForAnalysis: { mimeType: string; data: string }[] = [];
+    const mediaProcessingErrors: string[] = [];
 
-    for (const mediaFile of media_files) {
-      if (mediaFile.type !== "image") continue; // Gemini Vision currently works best with images
+    for (let i = 0; i < media_files.length; i++) {
+      const mediaFile = media_files[i];
 
-      const response = await fetch(mediaFile.uri);
-      const blob = await response.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      try {
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          .from("hazard-media")
+          .createSignedUrl(`tmp/${mediaFile.name}`, 60);
+        if (signedUrlError || !signedUrlData) {
+          mediaProcessingErrors.push(`File ${mediaFile.name}: Failed to generate signed URL.`);
+          continue;
+        }
 
-      // Prepare for LLM analysis first to avoid unnecessary uploads
-      mediaForAnalysis.push({
-        mimeType: blob.type || "image/jpeg",
-        data: base64,
-      });
+        const head = await fetch(signedUrlData.signedUrl, { method: "HEAD" });
+        if (!head.ok) {
+          mediaProcessingErrors.push(`File ${mediaFile.name}: File does not exist.`);
+          continue;
+        }
+
+        const response = await fetch(signedUrlData.signedUrl);
+        const blob = await response.blob();
+        const buffer = await blob.arrayBuffer();
+        const base64 = arrayBufferToBase64(buffer);
+
+        mediaForAnalysis.push({ mimeType: blob.type || (mediaFile.type === "video" ? "video/mp4" : "image/jpeg"), data: base64 });
+      } catch (error) {
+        mediaProcessingErrors.push(`File ${mediaFile.name}: ${error.message}`);
+      }
     }
 
-    if (mediaForAnalysis.length === 0) {
-      return new Response(JSON.stringify({ error: "No valid images found for analysis." }), {
+    if (!mediaForAnalysis.length) {
+      return new Response(JSON.stringify(createErrorResponse("No valid media for analysis", "MEDIA_PROCESSING_ERROR", { mediaProcessingErrors })), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: corsHeaders,
       });
     }
 
-    // --- LLM Analysis ---
-    const analysis = await analyzeMediaWithGemini(mediaForAnalysis);
+    let analysis: LLMAnalysis;
+    try {
+      analysis = await analyzeMediaWithGemini(mediaForAnalysis);
+    } catch (analysisError) {
+      return new Response(JSON.stringify(createErrorResponse("Failed AI analysis", "AI_ANALYSIS_ERROR", { error: analysisError.message })), {
+        status: 500,
+        headers: corsHeaders,
+      });
+    }
 
     if (!analysis.is_hazard) {
+      const failReason = analysis.reason?.trim();
+
       return new Response(
         JSON.stringify({
           success: false,
-          reason: analysis.reason || "The submitted media does not appear to contain a hazard.",
+          reason: failReason || "No visible real-world hazard detected, or media may be digitally sourced.",
+          analysis_details: analysis,
+          timestamp: new Date().toISOString(),
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: corsHeaders }
       );
     }
 
-    // --- Media Upload (only if it's a confirmed hazard) ---
+    const uploadErrors: string[] = [];
     for (const mediaFile of media_files) {
-      if (mediaFile.type !== "image") continue;
+      const tmpPath = `tmp/${mediaFile.name}`;
+      const finalPath = `reports/${mediaFile.name}`;
 
-      const response = await fetch(mediaFile.uri);
-      const blob = await response.blob();
+      try {
+        const { error: moveError } = await supabase.storage.from("hazard-media").move(tmpPath, finalPath);
+        if (moveError) {
+          uploadErrors.push(`Failed to move ${tmpPath}: ${moveError.message}`);
+          continue;
+        }
 
-      const fileName = `${crypto.randomUUID()}-${mediaFile.name}`;
-      const filePath = `reports/${fileName}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage.from("hazard-media").upload(filePath, blob, {
-        contentType: blob.type || "image/jpeg",
-      });
-
-      if (uploadError) {
-        console.error("Upload error after confirmation:", uploadError.message);
-        continue;
+        const { data: publicUrlData } = supabase.storage.from("hazard-media").getPublicUrl(finalPath);
+        uploadedPaths.push(publicUrlData.publicUrl);
+      } catch (err) {
+        uploadErrors.push(`Failed to move ${tmpPath}: ${err.message}`);
       }
-      uploadedPaths.push(uploadData.path);
     }
 
-    if (uploadedPaths.length === 0) {
-      return new Response(JSON.stringify({ error: "Hazard detected, but media upload failed." }), {
+    if (!uploadedPaths.length) {
+      return new Response(JSON.stringify(createErrorResponse("Hazard detected but upload failed", "UPLOAD_ERROR", { uploadErrors, analysis })), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: corsHeaders,
       });
     }
 
     const { data: insertData, error: insertError } = await supabase
       .from("user_reports")
       .insert({
-        expo_token: expo_token,
+        expo_token,
         type: analysis.type || "general_hazard",
         sub_type: analysis.sub_type,
         description: analysis.description,
@@ -128,82 +195,66 @@ serve(async (req) => {
       .single();
 
     if (insertError) {
-      console.error("Database insert error:", insertError);
-      await supabase.storage.from("hazard-media").remove(uploadedPaths);
-      return new Response(JSON.stringify({ error: "Failed to save the report to the database", insertError }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      await supabase.storage
+        .from("hazard-media")
+        .remove(uploadedPaths)
+        .catch(() => {});
+      return new Response(
+        JSON.stringify(createErrorResponse("Failed DB insert", "DATABASE_ERROR", { insertError: insertError.message, uploadedPaths })),
+        { status: 500, headers: corsHeaders }
+      );
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        report_id: insertData.id,
-        message: "Hazard report submitted successfully.",
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    const response: SuccessResponse = createSuccessResponse(insertData.id, "Hazard report submitted successfully");
+    if (uploadErrors.length || mediaProcessingErrors.length) {
+      response.warnings = {
+        uploadErrors: uploadErrors.length ? uploadErrors : undefined,
+        mediaProcessingErrors: mediaProcessingErrors.length ? mediaProcessingErrors : undefined,
+      };
+    }
+
+    return new Response(JSON.stringify(response), { status: 200, headers: corsHeaders });
   } catch (error) {
-    console.error("Function error:", error);
-    return new Response(JSON.stringify({ error: "An internal server error occurred." }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify(createErrorResponse("Internal server error", "INTERNAL_ERROR", { error: error.message, stack: error.stack })),
+      { status: 500, headers: corsHeaders }
+    );
   }
 });
 
-// --- Gemini Analysis Function ---
 async function analyzeMediaWithGemini(media: { mimeType: string; data: string }[]): Promise<LLMAnalysis> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-  if (!GEMINI_API_KEY) {
-    console.error("GEMINI_API_KEY is not set.");
-    return { is_hazard: false, reason: "Server configuration error." };
-  }
+  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not set");
 
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({
     model: "gemini-1.5-flash-latest",
-    generationConfig: {
-      response_mime_type: "application/json",
-    },
+    generationConfig: { response_mime_type: "application/json" },
   });
 
   const prompt = `
-    You are an expert hazard analysis AI for a community safety program. Analyze the following image(s) to identify potential hazards or natural disasters that could cause human harm.
+You are an expert hazard analysis AI for a real-time disaster reporting app.
+Analyze the submitted media (images and short videos) to detect real-world hazards (e.g., floods, fires, landslides, accidents).
+Also watch for signs of digital content (TVs, screenshots, social media, artificial graphics, memes, etc.).
 
-    Respond ONLY with a valid JSON object based on the following schema.
-    {
-      "is_hazard": boolean,
-      "type": "Flood" | "Fire" | "Storm" | "Earthquake" | "Landslide" | "Accident" | "Other" | null,
-      "sub_type": "flash_flood" | "wildfire" | "structural_damage" | "vehicle_crash" | "power_line_down" | "road_blockage" | string | null,
-      "description": "A brief, human-like description from the perspective of a concerned community member. Example: 'It looks like the heavy rain caused flash flooding on Main Street by the bridge. The road is completely underwater and unsafe for cars.'" | null,
-      "reason": "If 'is_hazard' is false, provide a brief reason why." | null
-    }
+Respond ONLY in this JSON format:
+{
+  "is_hazard": boolean,
+  "type": "Flood" | "Fire" | "Storm" | "Earthquake" | "Landslide" | "Accident" | "Other" | null,
+  "sub_type": "flash_flood" | "wildfire" | "structural_damage" | "vehicle_crash" | "power_line_down" | "road_blockage" | string | null,
+  "description": string | null,
+  "reason": string | null
+}
+If you're unsure, lean toward caution and explain why.
+`;
 
-    Analyze the image(s) and return the JSON.
-  `;
+  const imageParts = media.map((m) => ({ inlineData: { data: m.data, mimeType: m.mimeType } }));
+  const result = await model.generateContent([prompt, ...imageParts]);
+  const responseText = result.response.text();
 
   try {
-    const imageParts = media.map((m) => ({
-      inlineData: {
-        data: m.data,
-        mimeType: m.mimeType,
-      },
-    }));
-
-    const result = await model.generateContent([prompt, ...imageParts]);
-    const response = result.response;
-    const responseText = response.text();
-
-    // The response should be a clean JSON string because of response_mime_type
-    const parsedAnalysis: LLMAnalysis = JSON.parse(responseText);
-    return parsedAnalysis;
-  } catch (error) {
-    console.error("Gemini API or JSON parsing error:", error);
-    return {
-      is_hazard: false,
-      reason: "Failed to analyze media due to a technical issue. Please review manually.",
-    };
+    return JSON.parse(responseText);
+  } catch (err) {
+    throw new Error(`Failed to parse Gemini response: ${responseText}`);
   }
 }
