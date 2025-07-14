@@ -44,8 +44,6 @@ const formatTo12HourTime = (dateInput, { showMinutes = true } = {}) => {
   return formattedTime;
 };
 
-
-
 /**
  * Formats hourly weather data for use in a chart.
  * Each item in the array should have a 'date' and 'heat_index' property.
@@ -55,12 +53,12 @@ const formatTo12HourTime = (dateInput, { showMinutes = true } = {}) => {
  */
 const formatHourlyDataForChart = (hourlyData) => {
   if (!hourlyData) return [];
-  return hourlyData.map(item => {
+  return hourlyData.map((item) => {
     const date = new Date(item.date);
     return {
-      value: Math.floor(item.heat_index), 
-      label: formatTo12HourTime(date, { showMinutes: false }), 
-      dataPointText: Math.floor(item.heat_index)
+      value: Math.floor(item.heat_index),
+      label: formatTo12HourTime(date, { showMinutes: false }),
+      dataPointText: Math.floor(item.heat_index),
     };
   });
 };
@@ -126,4 +124,3 @@ const formatDate = (dateInput, { format = "full" } = {}) => {
 };
 
 export { convertUnixToISO, formatDate, formatHourlyDataForChart, formatTo12HourTime };
-

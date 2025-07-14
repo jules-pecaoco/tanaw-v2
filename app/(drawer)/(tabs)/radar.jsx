@@ -1,5 +1,5 @@
 import Mapbox, { Camera, FillExtrusionLayer, Images, MapView, UserLocation, VectorSource } from "@rnmapbox/maps";
-import { useCallback, useRef } from "react";
+import { useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 import { icons } from "../../../constants/index";
@@ -21,15 +21,8 @@ import TimeStamp from "../../../ui/radar/TimeStamp";
 import WeatherLayer from "../../../ui/radar/WeatherLayer";
 import WeatherPoints from "../../../ui/radar/WeatherPoints";
 
-const areCoordinatesEqual = (coord1, coord2, tolerance = 0.0001) => {
-  if (!coord1 || !coord2) return false;
-  const lonDiff = Math.abs(coord1[0] - coord2[0]);
-  const latDiff = Math.abs(coord1[1] - coord2[1]);
-  return lonDiff < tolerance && latDiff < tolerance;
-};
-
 const RadarScreen = () => {
-  const { userLocation, openGroups, facilityDirection, setIsMapCentered, visibleLayers, currentTileUrlTemplate } = useStore();
+  const { userLocation, openGroups, facilityDirection, visibleLayers, currentTileUrlTemplate } = useStore();
   const { hazardLayers, weatherLayers, isLoading: weatherIsLoading, isRefetching: weatherIsRefetching } = useWeatherData();
   const { facilitiesData, isLoading: facilitiesIsLoading, isRefetching: facilitiesIsRefetching } = useFacilitiesData();
   useUserInfo();
@@ -48,22 +41,7 @@ const RadarScreen = () => {
         animationMode: "flyTo",
       });
     }
-    setIsMapCentered(true);
   };
-
-  // const handleCameraChanged = useCallback(
-  //   (event) => {
-  //     const currentCenter = event.properties.center;
-  //     const isCentered = areCoordinatesEqual(currentCenter, [userLocation.longitude, userLocation.latitude]);
-
-  //     // Only update if the value changes
-  //     setIsMapCentered((prev) => {
-  //       if (prev === isCentered) return prev;
-  //       return isCentered;
-  //     });
-  //   },
-  //   [userLocation]
-  // );
 
   const openFacilityBottomSheet = () => {
     facilityBottomSheetRef.current?.expand();
@@ -94,7 +72,6 @@ const RadarScreen = () => {
           logoEnabled={false}
           attributionEnabled={false}
           scaleBarEnabled={false}
-          // onMapIdle={handleCameraChanged}
         >
           <Camera
             ref={cameraMapRef}

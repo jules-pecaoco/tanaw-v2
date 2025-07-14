@@ -12,7 +12,6 @@ const useUserInfo = () => {
     const updateUserInfo = async () => {
       setError(null);
 
-
       if (!userLocationNotification.latitude || !userLocationNotification.longitude) {
         console.error("Invalid location data:", userLocationNotification);
         setError("Invalid location data");

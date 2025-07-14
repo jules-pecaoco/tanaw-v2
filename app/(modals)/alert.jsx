@@ -83,8 +83,8 @@ const AlertScreen = () => {
 
   return (
     <View className="flex-1 items-center justify-center px-6" style={{ backgroundColor: bgColor }}>
-      <Text className="text-white text-2xl font-bold mb-4 text-center">{title}</Text>
-      <Text className="text-white text-base text-center">{body}</Text>
+      <Text className="text-white text-4xl font-tbold mb-4 text-center">{title}</Text>
+      <Text className="text-white text-lg text-center">{body}</Text>
     </View>
   );
 };

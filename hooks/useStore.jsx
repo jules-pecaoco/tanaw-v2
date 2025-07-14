@@ -30,7 +30,6 @@ const useStore = create(
       currentTileUrlTemplate: null,
       facilityBottomSheetData: null,
       facilityDestination: {},
-      isMapCentered: true,
 
       showMenu: false,
       openGroups: {
@@ -56,8 +55,6 @@ const useStore = create(
 
       setCurrentTileUrlTemplate: (url) => set({ currentTileUrlTemplate: url }),
       setFacilityBottomSheetData: (data) => set({ facilityBottomSheetData: data }),
-
-      setIsMapCentered: (isCentered) => set({ isMapCentered: isCentered }),
 
       toggleMenu: () => set((state) => ({ showMenu: !state.showMenu })),
       toggleGroup: (groupId, isCascade = true) =>

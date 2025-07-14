@@ -9,7 +9,7 @@ import useStore from "../../hooks/useStore";
 const SearchScreen = () => {
   const { setSearchTerm, suggestions, isLoadingSuggestions, setSelectedPlaceId, selectedPlaceDetails, isLoadingDetails } = useSearch();
   const { getCurrentLocation, getReverseGeocode } = useLocation();
-  const { recentSearches, setRecentSearches, setUserLocationNotification } = useStore();
+  const { recentSearches, setRecentSearches, setUserLocationNotification, setUserLocation } = useStore();
   const [searchText, setSearchText] = useState("");
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationRetrieved, setLocationRetrieved] = useState(false);
@@ -35,7 +35,7 @@ const SearchScreen = () => {
       timestamp: new Date().toISOString(),
     };
 
-    const updatedRecentSearches = [newSearch, ...recentSearches.filter((item) => item.id !== place.mapbox_id)].slice(0, 5); // Keep only 5 most recent
+    const updatedRecentSearches = [newSearch, ...recentSearches.filter((item) => item.id !== place.mapbox_id)].slice(0, 5);
 
     setRecentSearches(updatedRecentSearches);
     saveRecentSearches(updatedRecentSearches);
@@ -50,7 +50,6 @@ const SearchScreen = () => {
   const handleRecentSearchSelect = (recentSearch) => {
     setSelectedPlaceId(recentSearch.id);
 
-    // Show notification modal for recent search selection too
     setSelectedLocationForNotification(recentSearch);
     setShowNotificationModal(true);
   };
@@ -68,24 +67,30 @@ const SearchScreen = () => {
   const handleGetCurrentLocation = async () => {
     try {
       setIsGettingLocation(true);
+      setLocationRetrieved(false);
+      setCurrentLocationData(null);
+
       const location = await getCurrentLocation();
 
       if (location) {
-
         setLocationRetrieved(true);
         setCurrentLocationData(location);
 
+        // Get reverse geocoding to get a readable address
+        const reverseGeocode = await getReverseGeocode(location);
+
+        // Create a current location object similar to other selections
         const currentLocationForNotification = {
           id: "current_location",
           name: "Current Location",
-          fullName: `Your current location (${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)})`,
+          fullName: reverseGeocode?.formatted || `Current Location (${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)})`,
           timestamp: new Date().toISOString(),
           coordinates: {
             latitude: location.latitude,
             longitude: location.longitude,
           },
         };
-        await getReverseGeocode(location);
+
         setSelectedLocationForNotification(currentLocationForNotification);
         setShowNotificationModal(true);
       }
@@ -98,12 +103,24 @@ const SearchScreen = () => {
     }
   };
 
-  const handleNotificationResponse = (enableNotifications) => {
+  const handleNotificationResponse = async (enableNotifications) => {
     if (selectedLocationForNotification) {
-      const location = {
-        latitude: selectedPlaceDetails?.properties?.coordinates?.latitude || selectedLocationForNotification?.coordinates?.latitude,
-        longitude: selectedPlaceDetails?.properties?.coordinates?.latitude || selectedLocationForNotification?.coordinates?.longitude,
-      };
+      let location;
+
+      if (selectedLocationForNotification.id === "current_location") {
+        location = {
+          latitude: selectedLocationForNotification.coordinates.latitude,
+          longitude: selectedLocationForNotification.coordinates.longitude,
+        };
+        setUserLocation(location);
+        const reverseGeocode = await getReverseGeocode(location);
+      } else {
+        // Handle regular place selection coordinates
+        location = {
+          latitude: selectedPlaceDetails?.properties?.coordinates?.latitude || selectedLocationForNotification?.coordinates?.latitude,
+          longitude: selectedPlaceDetails?.properties?.coordinates?.longitude || selectedLocationForNotification?.coordinates?.longitude, // Fixed: was using latitude twice
+        };
+      }
 
       if (enableNotifications) {
         setUserLocationNotification(location);
@@ -253,16 +270,32 @@ const SearchScreen = () => {
           </View>
         )}
 
-        {/* Location Retrieved Message */}
+        {/* Current Location Details - Similar to Selected Place Details */}
         {locationRetrieved && currentLocationData && (
-          <View className="mx-4 mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <View className="flex-row items-center">
-              <Ionicons name="checkmark-circle" size={20} color="#059669" />
-              <Text className="text-green-800 font-tmedium ml-2">Location Retrieved Successfully</Text>
+          <View className="mx-4 mt-6 p-6 bg-background rounded-xl border border-primary/20">
+            <View className="flex-row items-center mb-4">
+              <View className="w-10 h-10 bg-primary rounded-full items-center justify-center mr-4">
+                <Ionicons name="locate" size={20} color="white" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-primary text-lg font-tbold">Current Location</Text>
+                <Text className="text-secondary text-sm">Your current position</Text>
+              </View>
             </View>
-            <Text className="text-green-700 text-sm mt-1">
-              Coordinates: {currentLocationData.latitude.toFixed(4)}, {currentLocationData.longitude.toFixed(4)}
-            </Text>
+
+            {/* Location Details */}
+            <View className="space-y-2">
+              <View className="flex-row items-center">
+                <Ionicons name="compass-outline" size={16} color="#secondary" />
+                <Text className="text-secondary text-sm ml-2">
+                  {currentLocationData.latitude.toFixed(4)}, {currentLocationData.longitude.toFixed(4)}
+                </Text>
+              </View>
+              <View className="flex-row items-center">
+                <Ionicons name="checkmark-circle" size={16} color="#059669" />
+                <Text className="text-green-800 text-sm ml-2">Location retrieved successfully</Text>
+              </View>
+            </View>
           </View>
         )}
 
@@ -341,7 +374,7 @@ const SearchScreen = () => {
         )}
 
         {/* Welcome State */}
-        {suggestions.length === 0 && !isLoadingSuggestions && searchText.length === 0 && recentSearches.length === 0 && (
+        {suggestions.length === 0 && !isLoadingSuggestions && searchText.length === 0 && recentSearches.length === 0 && !locationRetrieved && (
           <View className="px-4 py-12 items-center">
             <View className="w-20 h-20 bg-background rounded-full items-center justify-center mb-6">
               <Ionicons name="earth" size={40} color="#primary" />
