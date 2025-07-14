@@ -133,7 +133,7 @@ serve(async (req) => {
     }
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    let requestBody: HazardReport;
+    let requestBody;
     try {
       requestBody = await req.json();
     } catch (parseError) {
@@ -149,9 +149,9 @@ serve(async (req) => {
       return new Response(JSON.stringify(createErrorResponse("Missing required fields", "VALIDATION_ERROR")), { status: 400, headers: corsHeaders });
     }
 
-    const uploadedPaths: string[] = [];
-    const mediaForAnalysis: { mimeType: string; data: string }[] = [];
-    const mediaProcessingErrors: string[] = [];
+    const uploadedPaths = [];
+    const mediaForAnalysis = [];
+    const mediaProcessingErrors = [];
 
     for (let i = 0; i < media_files.length; i++) {
       const mediaFile = media_files[i];
@@ -189,7 +189,7 @@ serve(async (req) => {
       });
     }
 
-    let analysis: LLMAnalysis;
+    let analysis;
     try {
       analysis = await analyzeMediaWithGemini(mediaForAnalysis);
     } catch (analysisError) {
@@ -213,7 +213,7 @@ serve(async (req) => {
       );
     }
 
-    const uploadErrors: string[] = [];
+    const uploadErrors = [];
     for (const mediaFile of media_files) {
       const tmpPath = `tmp/${mediaFile.name}`;
       const finalPath = `reports/${mediaFile.name}`;
@@ -244,8 +244,8 @@ serve(async (req) => {
     const { data: insertData, error: insertError } = await supabase
       .from("user_reports")
       .insert({
-        user_id: user_id,
-        expo_token: expo_token,
+        user_id,
+        expo_token,
         type: analysis.type || "general_hazard",
         sub_type: analysis.sub_type,
         description: analysis.description,
@@ -263,37 +263,45 @@ serve(async (req) => {
         .catch(() => {});
       return new Response(
         JSON.stringify(createErrorResponse("Failed DB insert", "DATABASE_ERROR", { insertError: insertError.message, uploadedPaths })),
-        { status: 500, headers: corsHeaders }
+        {
+          status: 500,
+          headers: corsHeaders,
+        }
       );
     }
 
-    //CHECK FOR EXISTING ADVISORY
     const { data: existing } = await supabase
       .from("advisories")
-      .select("id")
+      .select("id, title, description")
       .eq("source", "user_report")
       .gte("created_at", new Date(Date.now() - 10 * 60 * 1000).toISOString());
-    if (existing && existing.length > 0) {
-      return new Response(JSON.stringify({ success: true, message: "Advisory already exists recently" }), {
-        status: 200,
-        headers: corsHeaders,
-      });
+
+    const isSimilar = existing?.some((entry) => {
+      return entry.title === `Nearby ${analysis.type} Reported`;
+    });
+
+    if (isSimilar) {
+      return new Response(
+        JSON.stringify({ success: true, message: "Report submitted but similar report already exists recently. Will Skip Alert Until 10 Minutes" }),
+        {
+          status: 200,
+          headers: corsHeaders,
+        }
+      );
     }
 
-    // Find nearby users within 5km
-    const { data: users, error: userError } = await supabase.rpc("get_nearby_users_with_token", {
+    const { data: users } = await supabase.rpc("get_nearby_users_with_token", {
       report_location: `POINT(${location.longitude} ${location.latitude})`,
       radius_km: 5,
     });
 
-    //SEND NOTIFICATIONS
     const title = `Nearby ${analysis.type} Reported`;
     const body = analysis.description;
+    const id = insertData.user_id + "-" + Math.random().toString(36).substring(2, 15);
 
     const tokens = users.map((u) => u.expo_token).filter(Boolean);
-    const sent = await sendExpoNotification(tokens, title, body);
+    await sendExpoNotification(tokens, title, body, { type: "alert", hazard: analysis.type.toLowerCase(), id });
 
-    //INSERT INTO ADVISORIES
     await supabase.from("advisories").insert({
       type: "alert",
       title,
@@ -302,7 +310,7 @@ serve(async (req) => {
       location: `POINT(${location.longitude} ${location.latitude})`,
     });
 
-    const response: SuccessResponse = createSuccessResponse(insertData.user_id, "Hazard report submitted successfully");
+    const response = createSuccessResponse(insertData.user_id, "Hazard report submitted successfully");
     if (uploadErrors.length || mediaProcessingErrors.length) {
       response.warnings = {
         uploadErrors: uploadErrors.length ? uploadErrors : undefined,
@@ -314,7 +322,10 @@ serve(async (req) => {
   } catch (error) {
     return new Response(
       JSON.stringify(createErrorResponse("Internal server error", "INTERNAL_ERROR", { error: error.message, stack: error.stack })),
-      { status: 500, headers: corsHeaders }
+      {
+        status: 500,
+        headers: corsHeaders,
+      }
     );
   }
 });

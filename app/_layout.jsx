@@ -11,6 +11,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import "@/global.css";
 import asyncStoragePersister from "@/persistence/query-cache";
 
+import useNotificationObserver from "@/hooks/useNotificationObserver";
 import useStore from "@/hooks/useStore";
 
 Notifications.setNotificationHandler({
@@ -27,6 +28,7 @@ Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN);
 SplashScreen.preventAutoHideAsync();
 
 function RootLayout() {
+  useNotificationObserver();
   const { userId } = useStore();
 
   const [fontsLoaded, error] = useFonts({

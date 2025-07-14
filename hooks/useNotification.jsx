@@ -43,7 +43,7 @@ export const useNotification = () => {
       console.error("Error requesting notification permissions:", error);
       return false;
     }
-  }, [userLocation, setUserExpoToken, setUserLocationNotification]); // Include dependencies
+  }, [userLocation, setUserExpoToken, setUserLocationNotification]);
 
   return {
     permissionStatus,
