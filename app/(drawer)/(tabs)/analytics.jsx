@@ -32,6 +32,8 @@ const AnalyticsScreen = () => {
     );
   }
 
+  console.log("Rendering AnalyticsScreen with data:")
+
   return (
     <ScrollView 
       className="flex-1 bg-gray-100"

@@ -89,6 +89,8 @@ const OfficialReportFeed = () => {
     );
   }
 
+  console.log("OfficialReportFeed rendered");
+
   return (
     <FlashList
       estimatedItemSize={50}

@@ -1,5 +1,5 @@
 import Mapbox, { Camera, FillExtrusionLayer, Images, MapView, UserLocation, VectorSource } from "@rnmapbox/maps";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 import { icons } from "../../../constants/index";
@@ -51,11 +51,19 @@ const RadarScreen = () => {
     setIsMapCentered(true);
   };
 
-  const handleCameraChanged = (event) => {
-    const currentCenter = event.properties.center;
-    const isCentered = areCoordinatesEqual(currentCenter, [userLocation.longitude, userLocation.latitude]);
-    setIsMapCentered(isCentered);
-  };
+  // const handleCameraChanged = useCallback(
+  //   (event) => {
+  //     const currentCenter = event.properties.center;
+  //     const isCentered = areCoordinatesEqual(currentCenter, [userLocation.longitude, userLocation.latitude]);
+
+  //     // Only update if the value changes
+  //     setIsMapCentered((prev) => {
+  //       if (prev === isCentered) return prev;
+  //       return isCentered;
+  //     });
+  //   },
+  //   [userLocation]
+  // );
 
   const openFacilityBottomSheet = () => {
     facilityBottomSheetRef.current?.expand();
@@ -73,6 +81,8 @@ const RadarScreen = () => {
     );
   }
 
+  console.log("RadarScreen Rendered");
+
   return (
     <View className="flex-1">
       <View className="flex-1">
@@ -84,7 +94,7 @@ const RadarScreen = () => {
           logoEnabled={false}
           attributionEnabled={false}
           scaleBarEnabled={false}
-          onMapIdle={handleCameraChanged}
+          // onMapIdle={handleCameraChanged}
         >
           <Camera
             ref={cameraMapRef}

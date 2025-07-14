@@ -1,5 +1,5 @@
 import { CircleLayer, ShapeSource, SymbolLayer } from "@rnmapbox/maps";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 import useStore from "../../hooks/useStore";
 
@@ -32,6 +32,8 @@ const FacilityPointsLayer = ({ datas, open }) => {
       open();
     }
   };
+
+  console.log("FacilityPointsLayer Rendered", datas.length);
 
   return (
     <ShapeSource id="facility-source" shape={geoJSON} cluster={true} clusterRadius={50} clusterMaxZoomLevel={13} onPress={handlePress}>
@@ -87,4 +89,4 @@ const FacilityPointsLayer = ({ datas, open }) => {
   );
 };
 
-export default FacilityPointsLayer;
+export default memo(FacilityPointsLayer);

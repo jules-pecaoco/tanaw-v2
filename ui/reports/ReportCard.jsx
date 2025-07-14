@@ -15,11 +15,6 @@ const ReportCard = ({ item }) => {
     player.loop = true;
   });
 
-  useEffect(() => {
-    if (isVideo) {
-      player.play();
-    }
-  }, [isVideo, player]);
 
   return (
     <View className="bg-white rounded-lg overflow-hidden my-2 mx-4 shadow-md">
@@ -45,14 +40,10 @@ const ReportCard = ({ item }) => {
         <View className="flex-row flex-wrap mb-2 items-center justify-between ">
           <View className="flex-row flex-wrap items-center">
             <Text className="bg-blue-100 text-blue-800 rounded-full px-3 py-1 text-xs font-semibold mr-2 mb-2 capitalize">{item.type}</Text>
-            {item.sub_type && (
-              <Text className="bg-gray-200 text-gray-800 rounded-full px-3 py-1 text-xs mr-2 mb-2 capitalize">
-                {item.sub_type.replace(/_/g, " ")}
-              </Text>
-            )}
           </View>
           <Text className="text-xs text-gray-500 text-right">{new Date(item.created_at).toLocaleDateString()}</Text>
         </View>
+        <Text className="text-xs text-gray-500 text-right">{item.location_name}</Text>
       </View>
     </View>
   );

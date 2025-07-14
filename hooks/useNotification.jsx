@@ -12,7 +12,7 @@ export const useNotification = () => {
       setPermissionStatus(status);
     };
     checkPermissions();
-  }, []); // Empty dependency array - only run once
+  }, []); 
 
   /**
    * Asks the user for notification permissions.

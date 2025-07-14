@@ -11,7 +11,7 @@ import supabase from "../../services/supabase";
 import { compressImage, compressVideo } from "../../utilities/mediaCompression";
 
 export default function HazardReportForm() {
-  const { userExpoToken } = useStore();
+  const { userExpoToken, userId } = useStore();
   const { getCurrentLocation } = useLocation();
   const [media, setMedia] = useState([]);
   const [location, setLocation] = useState(null);
@@ -178,6 +178,7 @@ export default function HazardReportForm() {
 
       const { data, error } = await supabase.functions.invoke("reports-service", {
         body: {
+          user_id: userId,
           expo_token: userExpoToken,
           media_files: uploadedMedia,
           location: location,

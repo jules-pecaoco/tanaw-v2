@@ -116,8 +116,8 @@ Deno.serve(async (req) => {
       console.error("Cache lookup RPC failed:", cacheError.message);
     }
 
-    if (cachedResult[0]) {
-      const cacheAgeHours = (new Date().getTime() - new Date(cachedResult[0].cached_at).getTime()) / 1000 / 60 / 60;
+    if (cachedResult && cachedResult.length > 0) {
+      const cacheAgeHours = (Date.now() - new Date(cachedResult[0].cached_at).getTime()) / (1000 * 60 * 60);
       if (cacheAgeHours < CACHE_STALE_HOURS) {
         return new Response(JSON.stringify(cachedResult[0].data), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },

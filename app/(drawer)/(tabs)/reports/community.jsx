@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { ActivityIndicator, RefreshControl, Text, View } from "react-native";
 
 import supabase from "../../../../services/supabase";
@@ -9,20 +9,19 @@ import supabase from "../../../../services/supabase";
 import BouncingButton from "../../../../ui/components/BouncingButton";
 import ReportCard from "../../../../ui/reports/ReportCard";
 
-const ReportButton = () => {
+const ReportButton = memo(() => {
   return (
     <BouncingButton
-      className="absolute bottom-10 right-8"
       onPress={() => {
         router.navigate("report");
       }}
     >
       <View className="bg-primary rounded-full p-5 shadow-lg">
-        <Ionicons name="add" size={24} color={"#fffcfa"}></Ionicons>
+        <Ionicons name="add" size={24} color={"#fffcfa"} />
       </View>
     </BouncingButton>
   );
-};
+});
 
 const CommunityReportsFeed = () => {
   const [reports, setReports] = useState([]);
@@ -53,6 +52,8 @@ const CommunityReportsFeed = () => {
     fetchReports();
   }, []);
 
+  console.log("CommunityReportsFeed rendered");
+
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchReports();
@@ -80,7 +81,7 @@ const CommunityReportsFeed = () => {
       <FlashList
         data={reports}
         renderItem={({ item }) => <ReportCard item={item} />}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id}
         estimatedItemSize={30}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#F47C25"]} />}
         ListEmptyComponent={() => (
@@ -89,7 +90,9 @@ const CommunityReportsFeed = () => {
           </View>
         )}
       />
-      <ReportButton />
+      <View className="absolute bottom-10 right-8">
+        <ReportButton />
+      </View>
     </View>
   );
 };

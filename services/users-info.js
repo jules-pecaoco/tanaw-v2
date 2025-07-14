@@ -19,7 +19,7 @@ const upsertUserInfo = async (id, expo_token, location) => {
   const { data, error } = await supabase
     .from("user_info")
     .upsert({
-      id: id,
+      user_id: id,
       expo_token: expo_token,
       location: `POINT(${longitude} ${latitude})`,
       updates_at: dateNow,

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendExpoNotification } from "./_shared/expoPush.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,6 +66,62 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
+async function reverseGeocode(location: { latitude: number; longitude: number }) {
+  const { latitude, longitude } = location;
+  const MAPBOX_API_KEY = Deno.env.get("MAPBOX_API_KEY");
+
+  if (!MAPBOX_API_KEY) {
+    return {
+      success: false,
+      error: "Missing MAPBOX_API_KEY",
+      code: "CONFIG_ERROR",
+    };
+  }
+
+  try {
+    const params = new URLSearchParams({
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      access_token: MAPBOX_API_KEY,
+    });
+
+    const apiUrl = `https://api.mapbox.com/search/geocode/v6/reverse?${params.toString()}`;
+    const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: `Mapbox API responded with status ${response.status}`,
+        code: "MAPBOX_API_ERROR",
+      };
+    }
+
+    const data = await response.json();
+    const context = data.features?.[0]?.properties?.context;
+
+    if (!context) {
+      return {
+        success: false,
+        error: "No geocoding context returned from Mapbox",
+        code: "MAPBOX_NO_CONTEXT",
+      };
+    }
+
+    return {
+      success: true,
+      locality: context.locality?.name || null,
+      city: context.place?.name || null,
+      region: context.region?.name || null,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: `Exception during reverse geocoding: ${err.message}`,
+      code: "REVERSE_GEOCODE_EXCEPTION",
+    };
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -86,7 +143,8 @@ serve(async (req) => {
       });
     }
 
-    const { expo_token, media_files, location } = requestBody;
+    const { user_id, expo_token, media_files, location } = requestBody;
+
     if (!expo_token || !media_files?.length || typeof location.latitude !== "number" || typeof location.longitude !== "number") {
       return new Response(JSON.stringify(createErrorResponse("Missing required fields", "VALIDATION_ERROR")), { status: 400, headers: corsHeaders });
     }
@@ -181,17 +239,21 @@ serve(async (req) => {
       });
     }
 
+    const locationName = await reverseGeocode(location);
+
     const { data: insertData, error: insertError } = await supabase
       .from("user_reports")
       .insert({
-        expo_token,
+        user_id: user_id,
+        expo_token: expo_token,
         type: analysis.type || "general_hazard",
         sub_type: analysis.sub_type,
         description: analysis.description,
         media_path: uploadedPaths,
         location: `POINT(${location.longitude} ${location.latitude})`,
+        location_name: locationName ? `${locationName.locality}, ${locationName.city}` : "Unknown Location",
       })
-      .select("id")
+      .select("user_id")
       .single();
 
     if (insertError) {
@@ -205,7 +267,42 @@ serve(async (req) => {
       );
     }
 
-    const response: SuccessResponse = createSuccessResponse(insertData.id, "Hazard report submitted successfully");
+    //CHECK FOR EXISTING ADVISORY
+    const { data: existing } = await supabase
+      .from("advisories")
+      .select("id")
+      .eq("source", "user_report")
+      .gte("created_at", new Date(Date.now() - 10 * 60 * 1000).toISOString());
+    if (existing && existing.length > 0) {
+      return new Response(JSON.stringify({ success: true, message: "Advisory already exists recently" }), {
+        status: 200,
+        headers: corsHeaders,
+      });
+    }
+
+    // Find nearby users within 5km
+    const { data: users, error: userError } = await supabase.rpc("get_nearby_users_with_token", {
+      report_location: `POINT(${location.longitude} ${location.latitude})`,
+      radius_km: 5,
+    });
+
+    //SEND NOTIFICATIONS
+    const title = `Nearby ${analysis.type} Reported`;
+    const body = analysis.description;
+
+    const tokens = users.map((u) => u.expo_token).filter(Boolean);
+    const sent = await sendExpoNotification(tokens, title, body);
+
+    //INSERT INTO ADVISORIES
+    await supabase.from("advisories").insert({
+      type: "alert",
+      title,
+      description: body,
+      source: "user_report",
+      location: `POINT(${location.longitude} ${location.latitude})`,
+    });
+
+    const response: SuccessResponse = createSuccessResponse(insertData.user_id, "Hazard report submitted successfully");
     if (uploadErrors.length || mediaProcessingErrors.length) {
       response.warnings = {
         uploadErrors: uploadErrors.length ? uploadErrors : undefined,

@@ -12,7 +12,7 @@ const useLocation = () => {
   const getReverseGeocode = async () => {
     try {
       const locationName = await reverseGeocode(userLocation);
-      setUserLocationName(locationName.locality || locationName.city || locationName.region || "Unknown Location");
+      setUserLocationName(`${locationName.locality},${locationName.city}` || locationName.city || locationName.region || "Unknown Location");
     } catch (error) {
       console.error("Error getting reverse geocode:", error);
       throw error;
