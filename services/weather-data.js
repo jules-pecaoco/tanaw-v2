@@ -5,7 +5,6 @@ import supabase from "./supabase";
  * @returns {Promise<Object|null>} The weather data or null if an error occurs.
  */
 const getWeatherData = async (location) => {
-  console.log("Fetching weather data for location:", location);
   const { data, error } = await supabase.functions.invoke("weather-service", {
     body: { name: "Functions", lat: location.latitude, lon: location.longitude },
   });

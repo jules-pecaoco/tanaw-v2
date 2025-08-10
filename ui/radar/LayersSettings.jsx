@@ -13,7 +13,6 @@ const LayersSettings = ({ weatherGroups, hazardGroups }) => {
     return null;
   }
 
-  console.log("LayersSettings Rendered");
 
   return (
     <View className="absolute bottom-0 w-full bg-background z-50">

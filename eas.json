@@ -12,12 +12,7 @@
       "distribution": "internal"
     },
     "production": {
-      "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "${EXPO_PUBLIC_SUPABASE_URL}",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "${EXPO_PUBLIC_SUPABASE_ANON_KEY}",
-        "EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN": "${EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN}",
-        "EXPO_PUBLIC_MAPBOX_SECRET_TOKEN": "${EXPO_PUBLIC_MAPBOX_SECRET_TOKEN}"
-      }
+      "distribution": "internal"
     }
   }
 }

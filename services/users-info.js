@@ -14,7 +14,6 @@ const upsertUserInfo = async (id, expo_token, location) => {
   const { latitude, longitude } = location;
   const dateNow = new Date().toISOString();
 
-  console.log("Upserting user info for ID:", id);
 
   const { data, error } = await supabase
     .from("user_info")

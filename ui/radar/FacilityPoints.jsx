@@ -33,7 +33,6 @@ const FacilityPointsLayer = ({ datas, open }) => {
     }
   };
 
-  console.log("FacilityPointsLayer Rendered", datas.length);
 
   return (
     <ShapeSource id="facility-source" shape={geoJSON} cluster={true} clusterRadius={50} clusterMaxZoomLevel={13} onPress={handlePress}>

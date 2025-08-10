@@ -21,6 +21,9 @@ import TimeStamp from "../../../ui/radar/TimeStamp";
 import WeatherLayer from "../../../ui/radar/WeatherLayer";
 import WeatherPoints from "../../../ui/radar/WeatherPoints";
 
+Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN);
+
+
 const RadarScreen = () => {
   const { userLocation, openGroups, facilityDirection, visibleLayers, currentTileUrlTemplate } = useStore();
   const { hazardLayers, weatherLayers, isLoading: weatherIsLoading, isRefetching: weatherIsRefetching } = useWeatherData();
@@ -59,7 +62,6 @@ const RadarScreen = () => {
     );
   }
 
-  console.log("RadarScreen Rendered");
 
   return (
     <View className="flex-1">

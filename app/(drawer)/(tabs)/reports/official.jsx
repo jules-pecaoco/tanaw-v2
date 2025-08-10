@@ -89,7 +89,6 @@ const OfficialReportFeed = () => {
     );
   }
 
-  console.log("OfficialReportFeed rendered");
 
   return (
     <FlashList
