@@ -58,10 +58,9 @@ const TimeStamp = ({ maxPastCast, maxFutureCast, interval, url, isString = false
     setTime((prevTime) => prevTime - interval);
   };
 
-  console.log("TimeStamp Rendered", { value, index, time, leftDisabled, rightDisabled });
 
   return (
-    <View className="absolute bottom-[10vh] w-full h-fit flex flex-row items-center justify-center rounded-full">
+    <View className="absolute bottom-[6vh] w-full h-fit flex flex-row items-center justify-center rounded-full">
       <BouncingButton
         onPressOut={() => setLeftPressed(false)}
         onPressIn={() => setLeftPressed(true)}

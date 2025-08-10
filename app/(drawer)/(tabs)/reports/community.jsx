@@ -52,7 +52,6 @@ const CommunityReportsFeed = () => {
     fetchReports();
   }, []);
 
-  console.log("CommunityReportsFeed rendered");
 
   const onRefresh = async () => {
     setRefreshing(true);

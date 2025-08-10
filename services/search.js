@@ -13,7 +13,6 @@ const MAPBOX_DIRECTIONS_URL = "https://api.mapbox.com/directions/v5/mapbox";
  * @returns {Promise<Array>} - List of matching city suggestions
  */
 const searchCitySuggestions = async (cityName, currentLocation, sessionToken) => {
-  console.log("Searching for city:", cityName, "near location:", currentLocation);
   try {
     // 1. Create a URLSearchParams object to build the query string
     const params = new URLSearchParams({
@@ -48,7 +47,6 @@ const searchCitySuggestions = async (cityName, currentLocation, sessionToken) =>
  * @returns {Promise<object|null>} - City details or null
  */
 const searchCityDetails = async (cityId, session_token) => {
-  console.log("Searching city details for ID:", cityId);
   try {
     const params = new URLSearchParams({
       language: "en",
@@ -78,7 +76,6 @@ const searchCityDetails = async (cityId, session_token) => {
  * @returns {Promise<object>} - Route data
  */
 const fetchDirections = async (location, destination, profile = "driving") => {
-  console.log("Fetching directions from:", location, "to:", destination);
   try {
     const waypoints = `${location.longitude},${location.latitude};${destination.longitude},${destination.latitude}`;
     const params = new URLSearchParams({
@@ -123,7 +120,6 @@ const fetchDirections = async (location, destination, profile = "driving") => {
  */
 const reverseGeocode = async (location) => {
   const { latitude, longitude } = location;
-  console.log("Reverse geocoding location:", latitude, longitude);
   try {
     // 1. Create the query parameters
     const params = new URLSearchParams({

@@ -48,7 +48,6 @@ const compressVideo = async (uri) => {
         maxDuration: 15, // in seconds
       },
       (progress) => {
-        console.log("Compression Progress:", progress);
       }
     );
 

@@ -26,7 +26,6 @@ const vibrationPatterns = {
 const AlertScreen = () => {
   const { title, body, type } = useLocalSearchParams();
   const bgColor = typeColors[type?.toLowerCase?.()] || typeColors.default;
-  console.log("AlertScreen params:", { title, body, type });
 
   const key = `alert_sound_${type?.toLowerCase?.()}`;
   const soundFile = alerts[key];

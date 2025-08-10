@@ -66,7 +66,7 @@ export default ({ config }) => ({
         RNMapboxMapsDownloadToken: process.env.EXPO_PUBLIC_MAPBOX_SECRET_TOKEN,
       },
     ],
-    ["react-native-compressor"]
+    ["react-native-compressor"],
   ],
   experiments: {
     typedRoutes: true,

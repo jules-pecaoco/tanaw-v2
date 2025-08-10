@@ -173,7 +173,6 @@ export default function HazardReportForm() {
           type: file.type,
           name: file.name || `${file.type}_${Date.now()}`,
         });
-        console.log("Uploaded media:", uploadedPath);
       }
 
       const { data, error } = await supabase.functions.invoke("reports-service", {
@@ -187,7 +186,6 @@ export default function HazardReportForm() {
 
       if (error && error instanceof FunctionsHttpError) {
         const errorMessage = await error.context.json();
-        console.log("Function returned an error", errorMessage);
         Alert.alert("Error", errorMessage.error || "An error occurred.");
         return;
       }

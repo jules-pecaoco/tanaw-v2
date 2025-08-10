@@ -26,7 +26,6 @@ const useNotificationObserver = () => {
           params: { title, body, type: hazard },
         });
       } else if (type === "advisory") {
-        console.log("Weather Advisory received:", title);
       }
     };
 

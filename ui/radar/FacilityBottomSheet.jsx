@@ -39,7 +39,6 @@ const openPhoneDialer = (phoneNumber) => {
 };
 
 const FacilityBottomSheet = ({ isLoading, ref, close }) => {
-  console.log;
   const { showFacilityBottomSheet, facilityBottomSheetData, facilityDirection, setFacilityDirection } = useStore();
   const { getDirections } = useSearch();
   const { name, short_address, international_phone_number, national_phone_number, category, latitude, longitude } = facilityBottomSheetData || {};
