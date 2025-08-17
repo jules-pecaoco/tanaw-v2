@@ -1,4 +1,3 @@
-import Mapbox from "@rnmapbox/maps";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { useFonts } from "expo-font";
@@ -70,10 +69,11 @@ function RootLayout() {
         router.replace("hero");
       } else {
         router.replace("radar");
-        SplashScreen.hideAsync();
       }
+      SplashScreen.hideAsync();
     }
   }, [fontsLoaded, error]);
+
 
   if (!fontsLoaded && !error) {
     return null;
