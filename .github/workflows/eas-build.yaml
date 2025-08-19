@@ -32,7 +32,7 @@ jobs:
         run: |
           if [ "${{ github.ref }}" == "refs/heads/master" ]; then
             echo "Building production (master)"
-            eas build -p android -e production --non-interactive --wait
+            eas build -p android -e preview --non-interactive --wait
           elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
             echo "Building preview (dev)"
             eas build -p android -e preview --non-interactive --wait
