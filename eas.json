@@ -9,9 +9,11 @@
       "distribution": "internal"
     },
     "preview": {
+      "releaseChannel": "preview",
       "distribution": "internal"
     },
     "production": {
+      "releaseChannel": "production",
       "distribution": "internal"
     }
   }

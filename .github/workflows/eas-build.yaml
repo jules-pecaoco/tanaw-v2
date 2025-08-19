@@ -1,0 +1,51 @@
+name: EAS Build
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Expo login
+        run: eas login --token ${{ secrets.EXPO_TOKEN }}
+
+      - name: Run EAS Build
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            echo "Building production (master)"
+            eas build -p android -e production --non-interactive --wait
+          elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
+            echo "Building preview (dev)"
+            eas build -p android -e preview --non-interactive --wait
+          fi
+
+      - name: Download latest build artifact
+        run: |
+          BUILD_ID=$(eas build:list --json --limit 1 | jq -r '.[0].id')
+          echo "Latest build id: $BUILD_ID"
+          eas build:download --id $BUILD_ID --path app-${{ github.ref_name }}.apk
+
+      - name: Upload APK to GitHub Actions
+        uses: actions/upload-artifact@v3
+        with:
+          name: Tanaw-${{ github.ref_name }}
+          path: Tanaw-${{ github.ref_name }}.apk
