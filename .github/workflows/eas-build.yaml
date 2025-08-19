@@ -25,8 +25,8 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      - name: Expo login
-        run: eas login --token ${{ secrets.EXPO_TOKEN }}
+      - name: Set Expo Token
+        run: echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
 
       - name: Run EAS Build
         run: |
