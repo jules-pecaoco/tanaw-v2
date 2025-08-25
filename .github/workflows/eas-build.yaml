@@ -1,4 +1,4 @@
-name: EAS Build
+name: EAS Build and Release
 
 on:
   push:
@@ -60,8 +60,26 @@ jobs:
             echo "No APK file found after download"
             exit 1
           fi
-      - name: Upload APK to GitHub Actions
-        uses: actions/upload-artifact@v4
+
+      # --- MODIFIED STEP ---
+      # This step replaces the old "upload-artifact" step
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: Tanaw-${{ github.ref_name }}
-          path: Tanaw-${{ github.ref_name }}.apk
+          # The tag for the release. e.g., vdev.123 or vmaster.124
+          tag_name: "v${{ github.ref_name }}.${{ github.run_number }}"
+
+          # The title of the release
+          name: "Release for ${{ github.ref_name }} (Build #${{ github.run_number }})"
+
+          # A description for the release. You can add more details here.
+          body: |
+            Automated release for the ${{ github.ref_name }} branch.
+            Commit: `${{ github.sha }}`
+
+          # The path to the file you want to upload
+          files: "Tanaw-${{ github.ref_name }}.apk"
+
+          # This is the key for your request:
+          # It evaluates to 'true' if the branch is 'dev', otherwise 'false'.
+          prerelease: ${{ github.ref_name == 'dev' }}
