@@ -342,8 +342,10 @@ async function analyzeMediaWithGemini(media: { mimeType: string; data: string }[
 
   const prompt = `
 You are an expert hazard analysis AI for a real-time disaster reporting app.
-Analyze the submitted media (images and short videos) to detect real-world hazards (e.g., floods, fires, landslides, accidents).
-Also watch for signs of digital content (TVs, screenshots, social media, artificial graphics, memes, etc.).
+Analyze the submitted media (images) to detect real-world hazards (e.g., floods, fires, landslides, accidents).
+Also watch for signs of digital content (TVs, screenshots, social media, artificial graphics, memes, etc.) that maybe taken from laptops, projector, and digital medium other than real world scenario
+Reject if multiple existence of similar images are detected.
+
 
 Respond ONLY in this JSON format:
 {

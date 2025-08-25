@@ -35,19 +35,9 @@ const extractNearbyLocationData = (nearbyCitiesData: any) => {
     name: city.name,
     weather: extractWeatherArrayData(city.weather[0]),
     heat_index: city.main.feels_like,
+    rain: city.rain,
     lat: city.coord.lat,
     lon: city.coord.lon,
-    date: dtToISOString(city.dt),
-  }));
-};
-
-const extractCitiesWeatherData = (citiesWeatherData: any) => {
-  return citiesWeatherData.list.map((city: any) => ({
-    name: city.name,
-    weather: extractWeatherArrayData(city.weather[0]),
-    heat_index: city.main.feels_like,
-    lat: city.coord.Lat,
-    lon: city.coord.Lon,
     date: dtToISOString(city.dt),
   }));
 };
@@ -133,21 +123,7 @@ const nearbyLocationWeather = async (lat: string, lon: string, apiKey: string) =
   }
 };
 
-// const citiesWeather = async (apiKey: string) => {
-//   try {
-//     const url = `https://api.openweathermap.org/data/2.5/box/city?bbox=122.0,9.0,123.6,11.2,10&units=metrics&appid=${apiKey}`;
-//     const response = await fetch(url);
-//     if (!response.ok) {
-//       throw new Error(`Error fetching nearby cities weather: ${response.statusText}`);
-//     }
-//     const data = await response.json();
-//     return {
-//       citiesWeather: extractCitiesWeatherData(data),
-//     };
-//   } catch (error) {
-//     throw new Error(`Failed to fetch nearby cities weather: ${error.message}`);
-//   }
-// };
+
 
 const weatherLayers = async (lat: string, lon: string, apiKey: string) => {
   try {

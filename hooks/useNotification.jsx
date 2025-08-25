@@ -25,7 +25,6 @@ export const useNotification = () => {
       setPermissionStatus(status);
 
       if (status !== "granted") {
-        alert("Failed to get push token for push notification!");
         return false;
       }
 

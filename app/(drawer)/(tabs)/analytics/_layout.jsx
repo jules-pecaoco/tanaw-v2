@@ -4,9 +4,7 @@ import { withLayoutContext } from "expo-router";
 const { Navigator } = createMaterialTopTabNavigator();
 const TopTabLayout = withLayoutContext(Navigator);
 
-
-
-export default function ReportsTabLayout() {
+export default function AnalyticsTabLayout() {
   return (
     <TopTabLayout
       screenOptions={{
@@ -25,8 +23,8 @@ export default function ReportsTabLayout() {
         },
       }}
     >
-      <TopTabLayout.Screen name="community" options={{ title: "Community", swipeEnabled: false }} />
-      <TopTabLayout.Screen name="official" options={{ title: "Official", swipeEnabled: false }} />
+      <TopTabLayout.Screen name="forecast" options={{ title: "Forecast", swipeEnabled: false }} />
+      <TopTabLayout.Screen name="analytic" options={{ title: "Analytics", swipeEnabled: false }} />
     </TopTabLayout>
   );
 }

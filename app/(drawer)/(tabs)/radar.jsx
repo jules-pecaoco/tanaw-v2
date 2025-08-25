@@ -23,7 +23,6 @@ import WeatherPoints from "../../../ui/radar/WeatherPoints";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN);
 
-
 const RadarScreen = () => {
   const { userLocation, openGroups, facilityDirection, visibleLayers, currentTileUrlTemplate } = useStore();
   const { hazardLayers, weatherLayers, isLoading: weatherIsLoading, isRefetching: weatherIsRefetching } = useWeatherData();
@@ -61,7 +60,6 @@ const RadarScreen = () => {
       </View>
     );
   }
-
 
   return (
     <View className="flex-1">
