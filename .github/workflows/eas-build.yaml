@@ -42,12 +42,25 @@ jobs:
         run: |
           set -e
           BUILD_ID=$(eas build:list --platform android --status finished --json --limit 1 --non-interactive | jq -r '.[0].id')
-          if [ -z "$BUILD_ID" ]; then
+          if [ -z "$BUILD_ID" ] || [ "$BUILD_ID" = "null" ]; then
             echo "No completed build found. Exiting."
             exit 1
           fi
           echo "Latest build id: $BUILD_ID"
-          eas build:download --id "$BUILD_ID" --path "Tanaw-${{ github.ref_name }}.apk"
+
+          # Download the build - try without explicit path first
+          echo "Downloading build $BUILD_ID..."
+          eas build:download "$BUILD_ID"
+
+          # Find the downloaded file and rename it
+          DOWNLOADED_FILE=$(find . -name "*.apk" -type f -exec basename {} \; | head -1)
+          if [ -n "$DOWNLOADED_FILE" ]; then
+            echo "Found downloaded file: $DOWNLOADED_FILE"
+            mv "$DOWNLOADED_FILE" "Tanaw-${{ github.ref_name }}.apk"
+          else
+            echo "No APK file found after download"
+            exit 1
+          fi
 
       - name: Upload APK to GitHub Actions
         uses: actions/upload-artifact@v4
