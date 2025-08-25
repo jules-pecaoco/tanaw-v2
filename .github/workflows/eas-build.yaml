@@ -41,27 +41,25 @@ jobs:
       - name: Download latest build artifact
         run: |
           set -e
-          BUILD_ID=$(eas build:list --platform android --status finished --json --limit 1 --non-interactive | jq -r '.[0].id')
+          BUILD_INFO=$(eas build:list --platform android --status finished --json --limit 1 --non-interactive)
+          BUILD_ID=$(echo "$BUILD_INFO" | jq -r '.[0].id')
+          BUILD_URL=$(echo "$BUILD_INFO" | jq -r '.[0].artifacts.buildUrl')
+
           if [ -z "$BUILD_ID" ] || [ "$BUILD_ID" = "null" ]; then
             echo "No completed build found. Exiting."
             exit 1
           fi
           echo "Latest build id: $BUILD_ID"
+          echo "Latest build URL: $BUILD_URL"
 
-          # Download the build - try without explicit path first
-          echo "Downloading build $BUILD_ID..."
-          eas build:download "$BUILD_ID"
+          # Download the build using curl
+          echo "Downloading build from $BUILD_URL..."
+          curl -L -o "Tanaw-${{ github.ref_name }}.apk" "$BUILD_URL"
 
-          # Find the downloaded file and rename it
-          DOWNLOADED_FILE=$(find . -name "*.apk" -type f -exec basename {} \; | head -1)
-          if [ -n "$DOWNLOADED_FILE" ]; then
-            echo "Found downloaded file: $DOWNLOADED_FILE"
-            mv "$DOWNLOADED_FILE" "Tanaw-${{ github.ref_name }}.apk"
-          else
+          if [ ! -f "Tanaw-${{ github.ref_name }}.apk" ]; then
             echo "No APK file found after download"
             exit 1
           fi
-
       - name: Upload APK to GitHub Actions
         uses: actions/upload-artifact@v4
         with:
