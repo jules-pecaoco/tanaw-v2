@@ -54,7 +54,7 @@ const TabLayout = () => {
             </BouncingButton>
           </View>
         ),
-        animation: "shift",
+        animation: "none",
       }}
     >
       <Tabs.Screen

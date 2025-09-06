@@ -123,8 +123,6 @@ const nearbyLocationWeather = async (lat: string, lon: string, apiKey: string) =
   }
 };
 
-
-
 const weatherLayers = async (lat: string, lon: string, apiKey: string) => {
   try {
     const url = "https://api.rainviewer.com/public/weather-maps.json";
