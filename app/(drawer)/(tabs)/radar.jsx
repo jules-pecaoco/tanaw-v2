@@ -1,5 +1,5 @@
 import Mapbox, { Camera, FillExtrusionLayer, Images, MapView, UserLocation, VectorSource } from "@rnmapbox/maps";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 import { icons } from "../../../constants/index";
@@ -16,6 +16,7 @@ import FacilityDirection from "../../../ui/radar/FacilityDirection";
 import FacilityPoints from "../../../ui/radar/FacilityPoints";
 import HazardLayer from "../../../ui/radar/HazardLayer";
 import LayersSettings from "../../../ui/radar/LayersSettings";
+import MapLegend from "../../../ui/radar/MapLegend";
 import SideButtons from "../../../ui/radar/SideButtons";
 import TimeStamp from "../../../ui/radar/TimeStamp";
 import WeatherLayer from "../../../ui/radar/WeatherLayer";
@@ -31,6 +32,40 @@ const RadarScreen = () => {
 
   const cameraMapRef = useRef(null);
   const facilityBottomSheetRef = useRef(null);
+
+  const activeLegends = useMemo(() => {
+    const legends = [];
+
+    // 1. Check for active hazard layers
+    hazardLayers?.hazardGroups?.forEach((group) => {
+      // NEW: Check if the group itself is open before checking its layers
+      if (openGroups.hazard?.[group.id]) {
+        group.layers.forEach((layer) => {
+          const layerKey = `${group.id}_${layer.id}`;
+          // Check if this layer's key exists and is set to `true`
+          if (visibleLayers.hazard?.[layerKey] && layer.legend) {
+            legends.push({ layerName: layer.name, legend: layer.legend });
+          }
+        });
+      }
+    });
+
+    // 2. Check for active weather layer
+    weatherLayers?.weatherGroups?.forEach((group) => {
+      // NEW: Check if the group itself is the currently open weather group
+      if (openGroups.weather === group.id) {
+        group.layers.forEach((layer) => {
+          const layerKey = `${group.id}_${layer.id}`;
+          // Check if the active weather layer key matches this layer's key
+          if (visibleLayers.weather === layerKey && layer.legend) {
+            legends.push({ layerName: layer.name, legend: layer.legend });
+          }
+        });
+      }
+    });
+
+    return legends;
+  }, [visibleLayers, openGroups, hazardLayers, weatherLayers]);
 
   const onRecenterPress = () => {
     if (cameraMapRef.current) {
@@ -53,7 +88,8 @@ const RadarScreen = () => {
     facilityBottomSheetRef.current?.close();
   };
 
-  if (weatherIsLoading || weatherIsRefetching) {
+  // MODIFIED: Show loading indicator if weather data OR facilities data is loading
+  if (weatherIsLoading || facilitiesIsLoading) {
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" color="#F47C25" />
@@ -73,6 +109,7 @@ const RadarScreen = () => {
           attributionEnabled={false}
           scaleBarEnabled={false}
         >
+          {/* ... (Camera, UserLocation, Images, FillExtrusionLayer are unchanged) ... */}
           <Camera
             ref={cameraMapRef}
             centerCoordinate={[userLocation.longitude, userLocation.latitude]}
@@ -101,16 +138,14 @@ const RadarScreen = () => {
               sourceLayerID="building"
               style={{
                 fillExtrusionHeight: ["get", "height"],
-
                 fillExtrusionBase: 0,
-
-                fillExtrusionColor: "#d3d3d3", // Light gray
-
+                fillExtrusionColor: "#d3d3d3",
                 fillExtrusionOpacity: 0.85,
               }}
             />
           </VectorSource>
 
+          {/* ... (HazardLayers, WeatherLayers, WeatherPoints, FacilityPoints, FacilityDirection are unchanged) ... */}
           {/* HAZARD LAYERS */}
           {hazardLayers?.hazardGroups &&
             hazardLayers?.hazardGroups.flatMap((group) =>
@@ -178,8 +213,8 @@ const RadarScreen = () => {
         </MapView>
       </View>
 
-      {/* NOT IN MAPVIEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW */}
-      {/* TIMESTAMP */}
+      {/* UI OVERLAYS */}
+      {/* ... (TimeStamp is unchanged) ... */}
       {weatherLayers?.weatherGroups &&
         weatherLayers.weatherGroups.flatMap((group) =>
           openGroups.weather === group.id
@@ -217,10 +252,13 @@ const RadarScreen = () => {
             : []
         )}
 
-      {/* NAVIGATIONS */}
+      {/* NAVIGATIONS & SETTINGS */}
       <FacilityBottomSheet isLoading={facilitiesIsLoading || facilitiesIsRefetching} ref={facilityBottomSheetRef} close={closeFacilityBottomSheet} />
       <LayersSettings weatherGroups={weatherLayers?.weatherGroups} hazardGroups={hazardLayers?.hazardGroups} />
       <SideButtons onRecenterPress={onRecenterPress} handleFacilityBottomSheetOpen={closeFacilityBottomSheet} />
+
+      {/* NEW: Render the MapLegend component with the active legends */}
+      <MapLegend legends={activeLegends} />
     </View>
   );
 };

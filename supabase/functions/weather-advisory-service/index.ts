@@ -34,7 +34,6 @@ interface UserProcessingResult {
   alert_type?: WeatherAlert["type"] | null;
 }
 
-// --- All helper functions below remain unchanged ---
 
 async function sendExpoNotification(tokens: string[], title: string, body: string, data: Record<string, any> = {}): Promise<boolean> {
   const messages = tokens.map((token) => ({

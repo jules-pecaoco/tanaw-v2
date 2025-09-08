@@ -293,6 +293,7 @@ serve(async (req) => {
     const { data: users } = await supabase.rpc("get_nearby_users_with_token", {
       report_location: `POINT(${location.longitude} ${location.latitude})`,
       radius_km: 5,
+      reporter_token: expo_token,
     });
 
     const title = `Nearby ${analysis.type} Reported`;
@@ -341,21 +342,27 @@ async function analyzeMediaWithGemini(media: { mimeType: string; data: string }[
   });
 
   const prompt = `
-You are an expert hazard analysis AI for a real-time disaster reporting app.
-Analyze the submitted media (images) to detect real-world hazards (e.g., floods, fires, landslides, accidents).
-Also watch for signs of digital content (TVs, screenshots, social media, artificial graphics, memes, etc.) that maybe taken from laptops, projector, and digital medium other than real world scenario
-Reject if multiple existence of similar images are detected.
+You are a sophisticated AI image analysis engine for a public safety and hazard reporting application. Your primary goal is to validate user-submitted images to ensure they depict a genuine, real-world hazard and are not fraudulent or misinformative.
 
+Analyze the provided images as a single, cohesive report based on the following strict rules:
 
-Respond ONLY in this JSON format:
+1.  **Real-World Verification:** The images MUST depict a scene from the real, physical world.
+
+2.  **Digital Content Rejection:** IMMEDIATELY REJECT the report if you detect any signs that the images are of a digital screen (computer monitor, laptop, TV, phone), a screenshot, or contain artificial graphics. The content must be an original photograph of a real event.
+
+3.  **Image Uniqueness and Redundancy:** ANALYZE the images for redundancy. REJECT the report if the images are identical or near-identical duplicates. If the images show the same scene from slightly different angles, this is acceptable and should be used for a more confident analysis. However, if they are exact copies, it indicates a low-quality report.
+
+4.  **Hazard Identification:** If, and only if, the images pass all the above checks, identify the primary hazard (e.g., Flood, Fire, Landslide, Accident).
+
+Based on your analysis, respond ONLY in the following JSON format. Do not include any other text or explanations outside the JSON structure.
+
 {
   "is_hazard": boolean,
   "type": "Flood" | "Fire" | "Storm" | "Earthquake" | "Landslide" | "Accident" | "Other" | null,
   "sub_type": "flash_flood" | "wildfire" | "structural_damage" | "vehicle_crash" | "power_line_down" | "road_blockage" | string | null,
-  "description": string | null,
-  "reason": string | null
+  "description": "A concise, one-sentence summary of the hazard observed." | null,
+  "reason": "If is_hazard is false, provide a clear, brief reason based on the rules above (e.g., 'Detected digital screen content.', 'Submission contains duplicate images.', or 'No discernible hazard found.')." | null
 }
-If you're unsure, lean toward caution and explain why.
 `;
 
   const imageParts = media.map((m) => ({ inlineData: { data: m.data, mimeType: m.mimeType } }));
