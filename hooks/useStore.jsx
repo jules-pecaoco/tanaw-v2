@@ -29,6 +29,7 @@ const useStore = create(
       // UI STATE
       currentTileUrlTemplate: null,
       facilityBottomSheetData: null,
+      selectedUserReport: null, // NEW: State to hold the data for the selected user report
       facilityDestination: {},
 
       showMenu: false,
@@ -55,6 +56,7 @@ const useStore = create(
 
       setCurrentTileUrlTemplate: (url) => set({ currentTileUrlTemplate: url }),
       setFacilityBottomSheetData: (data) => set({ facilityBottomSheetData: data }),
+      setSelectedUserReport: (report) => set({ selectedUserReport: report }), // NEW: Action to update the selected user report
 
       toggleMenu: () => set((state) => ({ showMenu: !state.showMenu })),
       toggleGroup: (groupId, isCascade = true) =>
