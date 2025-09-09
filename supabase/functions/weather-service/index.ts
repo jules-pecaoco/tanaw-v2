@@ -149,7 +149,7 @@ const weatherLayers = async (lat: string, lon: string, apiKey: string) => {
                 id: "openweathermap_heat_index",
                 name: "Heat Index Layer",
                 icon: "https://avatars.githubusercontent.com/u/1743227?s=200&v=4",
-                tilesetUrl: `http://maps.openweathermap.org/maps/2.0/weather/TD2/{z}/{x}/{y}?appid=${apiKey}&fill_bound=true&opacity=0.3&E6E6E6=25:FFFF00;30:FC8014&date=`,
+                tilesetUrl: `https://maps.openweathermap.org/maps/2.0/weather/TD2/{z}/{x}/{y}?appid=${apiKey}&fill_bound=true&opacity=0.3&E6E6E6=25:FFFF00;30:FC8014&date=`,
                 sourceLayer: "openweathermap_heat_index",
                 source: "OpenWeatherMap",
                 interval: 1000 * 60 * 60 * 3, // 3 hours
@@ -180,7 +180,7 @@ const weatherLayers = async (lat: string, lon: string, apiKey: string) => {
                 id: "openweathermap_rain_layer",
                 name: "Rain Layer",
                 icon: "https://avatars.githubusercontent.com/u/1743227?s=200&v=4",
-                tilesetUrl: `http://maps.openweathermap.org/maps/2.0/weather/PR0/{z}/{x}/{y}?appid=${apiKey}&fill_bound=true&opacity=0.7&palette=0.000027:e6f7ff;0.000694:87ceeb;0.00211:1e90ff;0.01388:0000cd&date=`,
+                tilesetUrl: `https://maps.openweathermap.org/maps/2.0/weather/PR0/{z}/{x}/{y}?appid=${apiKey}&fill_bound=true&opacity=0.7&palette=0.000027:e6f7ff;0.000694:87ceeb;0.00211:1e90ff;0.01388:0000cd&date=`,
                 sourceLayer: "openweathermap_rain_layer",
                 source: "OpenWeatherMap",
                 interval: 1000 * 60 * 60 * 3, // 3 hours
