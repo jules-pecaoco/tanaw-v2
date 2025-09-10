@@ -10,7 +10,7 @@ import { parseLayerConfigToProps } from "../../../utilities/mapStyleParser";
 import useFacilitiesData from "../../../hooks/useFacilitiesData";
 import useStore from "../../../hooks/useStore";
 import useUserInfo from "../../../hooks/useUserInfo";
-import useUserReportsData from "../../../hooks/useUserReportsData"; // NEW: Import the hook for user reports
+import useUserReportsData from "../../../hooks/useUserReportsData";
 import useWeatherData from "../../../hooks/useWeatherData";
 
 // --- UI IMPORTS ---
@@ -43,28 +43,39 @@ const RadarScreen = () => {
   const facilityBottomSheetRef = useRef(null);
   const userReportBottomSheetRef = useRef(null); // NEW: Create a ref for the report bottom sheet
 
-  // --- UNCHANGED: Legend logic ---
   const activeLegends = useMemo(() => {
-    // ... (your existing legend logic remains the same)
     const legends = [];
-    if (hazardLayers?.hazardGroups && visibleLayers.hazard) {
-      for (const layerKey in visibleLayers.hazard) {
-        if (visibleLayers.hazard[layerKey]) {
-          const [groupId, layerId] = layerKey.split("_");
-          const group = hazardLayers.hazardGroups.find((g) => g.id === groupId);
-          const layer = group?.layers.find((l) => l.id === layerId);
-          if (layer?.legend) legends.push({ layerName: layer.name, legend: layer.legend });
-        }
+
+    // 1. Check for active hazard layers (this logic is likely correct but let's make it robust too)
+    hazardLayers?.hazardGroups?.forEach((group) => {
+      // Check if the group itself is open before checking its layers
+      if (openGroups.hazard?.[group.id]) {
+        group.layers.forEach((layer) => {
+          const layerKey = `${group.id}_${layer.id}`;
+          // Check if this layer's key exists and is set to `true` in the visibleLayers state
+          if (visibleLayers.hazard?.[layerKey] && layer.legend) {
+            legends.push({ layerName: layer.name, legend: layer.legend });
+          }
+        });
       }
-    }
-    if (weatherLayers?.weatherGroups && visibleLayers.weather) {
-      const [groupId, layerId] = visibleLayers.weather.split("_");
-      const group = weatherLayers.weatherGroups.find((g) => g.id === groupId);
-      const layer = group?.layers.find((l) => l.id === layerId);
-      if (layer?.legend) legends.push({ layerName: layer.name, legend: layer.legend });
-    }
+    });
+
+    // 2. Check for active weather layer by iterating through the source data
+    weatherLayers?.weatherGroups?.forEach((group) => {
+      // Check if the group itself is the currently open weather group
+      if (openGroups.weather === group.id) {
+        group.layers.forEach((layer) => {
+          const layerKey = `${group.id}_${layer.id}`;
+          // Check if the active weather layer key in the state matches this layer's key
+          if (visibleLayers.weather === layerKey && layer.legend) {
+            legends.push({ layerName: layer.name, legend: layer.legend });
+          }
+        });
+      }
+    });
+
     return legends;
-  }, [visibleLayers, hazardLayers, weatherLayers]);
+  }, [visibleLayers, openGroups, hazardLayers, weatherLayers]); // Added openGroups to dependency array
 
   // --- UNCHANGED: Recenter function ---
   const onRecenterPress = () => {
