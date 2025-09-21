@@ -9,8 +9,8 @@ import supabase from "./supabase"; // Your configured Supabase client
  */
 
 export const fetchUserReports = async () => {
-  // Calculate the timestamp for 48 hours ago
-  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+  // Calculate the timestamp for 7 days ago
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   // Fetch recent reports from the database
   const { data, error } = await supabase
@@ -27,7 +27,7 @@ export const fetchUserReports = async () => {
       created_at
     `
     )
-    .gte("created_at", fortyEightHoursAgo); // Filter for recent reports for performance
+    .gte("created_at", sevenDaysAgo); // Filter for recent reports for performance
 
   if (error) {
     console.error("Error fetching user reports:", error);
@@ -37,9 +37,6 @@ export const fetchUserReports = async () => {
   // Transform the data to a more UI-friendly format
   const transformedData = data.map((report) => ({
     ...report,
-    // The 'location' column from Supabase (PostGIS) is a GeoJSON object.
-    // We extract the coordinates for easier use with Mapbox GL.
-    // GeoJSON format is [longitude, latitude].
     coordinates: report.location.coordinates,
   }));
 

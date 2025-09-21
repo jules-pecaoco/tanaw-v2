@@ -22,7 +22,7 @@ import LayersSettings from "../../../ui/radar/LayersSettings";
 import MapLegend from "../../../ui/radar/MapLegend";
 import SideButtons from "../../../ui/radar/SideButtons";
 import TimeStamp from "../../../ui/radar/TimeStamp";
-import UserReportBottomSheet from "../../../ui/radar/UserReportBottomSheet"; // NEW: Import the bottom sheet component
+import UserReportBottomSheet from "../../../ui/radar/UserReportBottomSheet";
 import UserReportPoints from "../../../ui/radar/UserReportPoints";
 import WeatherLayer from "../../../ui/radar/WeatherLayer";
 import WeatherPoints from "../../../ui/radar/WeatherPoints";
@@ -32,16 +32,14 @@ Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN);
 const RadarScreen = () => {
   const { userLocation, openGroups, facilityDirection, visibleLayers, currentTileUrlTemplate, setSelectedUserReport } = useStore();
 
-  // --- MODIFIED: Fetch data from all sources ---
   const { hazardLayers, weatherLayers, isLoading: weatherIsLoading } = useWeatherData();
   const { facilitiesData, isLoading: facilitiesIsLoading } = useFacilitiesData();
-  const { userReports, isLoading: reportsIsLoading } = useUserReportsData(); // NEW: Fetch user reports
+  const { userReports, isLoading: reportsIsLoading } = useUserReportsData();
   useUserInfo();
 
-  // --- MODIFIED: Add refs for the new bottom sheet ---
   const cameraMapRef = useRef(null);
   const facilityBottomSheetRef = useRef(null);
-  const userReportBottomSheetRef = useRef(null); // NEW: Create a ref for the report bottom sheet
+  const userReportBottomSheetRef = useRef(null);
 
   const activeLegends = useMemo(() => {
     const legends = [];
@@ -75,9 +73,8 @@ const RadarScreen = () => {
     });
 
     return legends;
-  }, [visibleLayers, openGroups, hazardLayers, weatherLayers]); // Added openGroups to dependency array
+  }, [visibleLayers, openGroups, hazardLayers, weatherLayers]);
 
-  // --- UNCHANGED: Recenter function ---
   const onRecenterPress = () => {
     if (cameraMapRef.current) {
       cameraMapRef.current.setCamera({
@@ -91,22 +88,17 @@ const RadarScreen = () => {
     }
   };
 
-  // --- UNCHANGED: Facility Bottom Sheet functions ---
   const openFacilityBottomSheet = () => facilityBottomSheetRef.current?.expand();
   const closeFacilityBottomSheet = () => facilityBottomSheetRef.current?.close();
 
-  // --- NEW: Functions to control the User Report Bottom Sheet ---
   const openUserReportBottomSheet = (report) => {
     setSelectedUserReport(report); // Set the selected report in the global store
     userReportBottomSheetRef.current?.expand(); // Expand the sheet
   };
   const closeUserReportBottomSheet = () => {
     userReportBottomSheetRef.current?.close();
-    // Optional: Clear the selected report from the store on close
-    // setTimeout(() => setSelectedUserReport(null), 250);
   };
 
-  // --- MODIFIED: Update the main loading state to include reports ---
   if (weatherIsLoading || facilitiesIsLoading || reportsIsLoading) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -216,7 +208,7 @@ const RadarScreen = () => {
           {/* FACILITIES POINTS */}
           {facilitiesData && <FacilityPoints datas={facilitiesData} open={openFacilityBottomSheet} />}
 
-          {/* --- NEW: Render the user report points on the map --- */}
+          {/* REPORT POINTS */}
           <UserReportPoints reports={userReports} onReportPress={openUserReportBottomSheet} />
 
           {/* FACILITIES DIRECTION  */}
@@ -224,7 +216,7 @@ const RadarScreen = () => {
         </MapView>
       </View>
 
-      {/* --- UI OVERLAYS --- */}
+      {/* --- UI OVERLAYS / MAPVIEW BORDER--- -----------------------------------------------------------------------------------------*/}
 
       {/* TIMESTAMP (Unchanged) */}
       {weatherLayers?.weatherGroups &&
@@ -248,15 +240,15 @@ const RadarScreen = () => {
             : []
         )}
 
-      {/* NAVIGATIONS & SETTINGS (Unchanged) */}
+      {/* NAVIGATIONS & SETTINGS */}
       <FacilityBottomSheet ref={facilityBottomSheetRef} close={closeFacilityBottomSheet} />
       <LayersSettings weatherGroups={weatherLayers?.weatherGroups} hazardGroups={hazardLayers?.hazardGroups} />
       <SideButtons onRecenterPress={onRecenterPress} handleFacilityBottomSheetOpen={closeFacilityBottomSheet} />
 
-      {/* LEGEND (Unchanged) */}
+      {/* LEGEND  */}
       <MapLegend legends={activeLegends} />
 
-      {/* --- NEW: Render the User Report Bottom Sheet --- */}
+      {/* REPORT BOTTOM SHEET */}
       <UserReportBottomSheet ref={userReportBottomSheetRef} close={closeUserReportBottomSheet} />
     </View>
   );

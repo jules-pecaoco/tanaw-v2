@@ -1,7 +1,95 @@
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { BarChart, LineChart } from "react-native-gifted-charts";
+import useReportAnalyticsData from "../../../../hooks/useReportAnalyticsData";
+import useUserReportsData from "../../../../hooks/useUserReportsData";
 
 import useAnalyticsData from "../../../../hooks/useAnalyticsData";
+
+const ReportAnalytics = () => {
+  // Step 1: Fetch the raw user reports data
+  const { userReports, isLoading, error } = useUserReportsData();
+  // Step 2: Process the raw data to get analytics
+  const { analytics } = useReportAnalyticsData(userReports);
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" color="#F47C25" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background p-5">
+        <Text className="text-tertiary text-center">Error: {error?.message}</Text>
+      </View>
+    );
+  }
+
+  if (!analytics) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background p-5">
+        <Text className="text-secondary text-center font-tmedium text-lg">No user reports in the last 7 days to analyze.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView className="flex-1 bg-background" overScrollMode="never">
+      <View className="p-5">
+        {/* --- ANALYTICS HEADER --- */}
+        <View className="pt-12 pb-6 px-4 rounded-b-2xl">
+          <Text className="text-black text-4xl font-tbold">Community Insights</Text>
+          <Text className="text-black text-lg text-opacity-70 mt-1">Last 7 Days</Text>
+        </View>
+
+        {/* --- SUMMARY CARDS --- */}
+        <View className="px-4 py-6">
+          <View className="flex-row flex-wrap justify-between">
+            <View className="bg-white rounded-xl p-4 mb-4 w-[48%] shadow-sm">
+              <Text className="text-gray-500 text-sm">Total Reports</Text>
+              <Text className="text-2xl font-tbold text-primary mt-1">{analytics.totalReports}</Text>
+            </View>
+            <View className="bg-white rounded-xl p-4 mb-4 w-[48%] shadow-sm">
+              <Text className="text-gray-500 text-sm">Top Hazard</Text>
+              <Text className="text-2xl font-tbold text-tertiary mt-1">{analytics.mostFrequentHazard}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* --- SUMMARY LIST (Report Types) --- */}
+        <View className="mx-4 mb-10 bg-white rounded-xl p-4 shadow-sm">
+          <Text className="text-lg font-tbold text-secondary mb-4">Hazard Breakdown</Text>
+          <View className="space-y-3">
+            {analytics.typeDistribution.map((item, index) => (
+              <View
+                key={item.type}
+                className={`flex-row justify-between items-center py-2 ${index !== analytics.typeDistribution.length - 1 ? "border-b border-gray-100" : ""}`}
+              >
+                <Text className="text-gray-600">{item.type}</Text>
+                <Text className="font-tmedium text-secondary">{item.count} reports</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* --- CHART --- */}
+        <View className="mx-4 mb-6 bg-white rounded-xl p-4 shadow-sm overflow-hidden">
+          <Text className="text-lg font-tbold text-secondary mb-4">Daily Report Frequency</Text>
+          <BarChart
+            data={analytics.chartData}
+            frontColor={"#F47C25"} // Your primary color
+            noOfSections={4}
+            isAnimated
+            yAxisTextStyle={{ color: "gray" }}
+            xAxisLabelTextStyle={{ color: "gray", fontSize: 10 }}
+          />
+        </View>
+      </View>
+    </ScrollView>
+  );
+};
 
 const Analytics = () => {
   const { analytics, loading, error } = useAnalyticsData();
@@ -100,6 +188,7 @@ const Analytics = () => {
           <BarChart data={analytics.chartData.rain} frontColor={"#1d4ed8"} noOfSections={5} isAnimated />
         </View>
       </View>
+      <ReportAnalytics />
     </ScrollView>
   );
 };

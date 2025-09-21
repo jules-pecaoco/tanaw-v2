@@ -1,7 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image, SafeAreaView, ScrollView, Text, View } from "react-native";
 
-// A reusable component for highlighting a core feature with an icon.
 const FeatureHighlight = ({ iconName, title, description }) => (
   <View className="flex-row items-start mb-4">
     <Ionicons name={iconName} size={24} className="text-primary mr-4 mt-1" />
@@ -18,7 +17,6 @@ const About = () => {
       <ScrollView contentContainerStyle={{ padding: 24 }}>
         {/* App Logo and Name */}
         <View className="items-center mb-6">
-          {/* --- IMPORTANT: Replace with the actual path to your logo --- */}
           <Image
             source={require("../../assets/images/logo_app.png")} // <-- UPDATE THIS PATH
             className="w-24 h-24 mb-2"
