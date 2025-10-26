@@ -6,9 +6,7 @@ import useUserReportsData from "../../../../hooks/useUserReportsData";
 import useAnalyticsData from "../../../../hooks/useAnalyticsData";
 
 const ReportAnalytics = () => {
-  // Step 1: Fetch the raw user reports data
   const { userReports, isLoading, error } = useUserReportsData();
-  // Step 2: Process the raw data to get analytics
   const { analytics } = useReportAnalyticsData(userReports);
 
   if (isLoading) {
@@ -30,7 +28,7 @@ const ReportAnalytics = () => {
   if (!analytics) {
     return (
       <View className="flex-1 items-center justify-center bg-background p-5">
-        <Text className="text-secondary text-center font-tmedium text-lg">No user reports in the last 7 days to analyze.</Text>
+        <Text className="text-secondary text-center font-tmedium text-lg">No user reports to analyze.</Text>
       </View>
     );
   }
@@ -41,7 +39,6 @@ const ReportAnalytics = () => {
         {/* --- ANALYTICS HEADER --- */}
         <View className="pt-12 pb-6 px-4 rounded-b-2xl">
           <Text className="text-black text-4xl font-tbold">Community Insights</Text>
-          <Text className="text-black text-lg text-opacity-70 mt-1">Last 7 Days</Text>
         </View>
 
         {/* --- SUMMARY CARDS --- */}

@@ -10,13 +10,10 @@ import supabase from "./supabase"; // Your configured Supabase client
 
 export const fetchUserReports = async () => {
   // Calculate the timestamp for 7 days ago
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   // Fetch recent reports from the database
-  const { data, error } = await supabase
-    .from("user_reports")
-    .select(
-      `
+  const { data, error } = await supabase.from("user_reports").select(
+    `
       id,
       type,
       sub_type,
@@ -26,15 +23,13 @@ export const fetchUserReports = async () => {
       location_name,
       created_at
     `
-    )
-    .gte("created_at", sevenDaysAgo); // Filter for recent reports for performance
+  );
 
   if (error) {
     console.error("Error fetching user reports:", error);
     throw new Error(error.message);
   }
 
-  // Transform the data to a more UI-friendly format
   const transformedData = data.map((report) => ({
     ...report,
     coordinates: report.location.coordinates,
