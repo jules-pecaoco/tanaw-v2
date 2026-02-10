@@ -1,8 +1,7 @@
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from "react-native";
 import { BarChart, LineChart } from "react-native-gifted-charts";
 import useReportAnalyticsData from "../../../../hooks/useReportAnalyticsData";
 import useUserReportsData from "../../../../hooks/useUserReportsData";
-
 import useAnalyticsData from "../../../../hooks/useAnalyticsData";
 
 const ReportAnalytics = () => {
@@ -76,7 +75,7 @@ const ReportAnalytics = () => {
           <Text className="text-lg font-tbold text-secondary mb-4">Daily Report Frequency</Text>
           <BarChart
             data={analytics.chartData}
-            frontColor={"#F47C25"} // Your primary color
+            frontColor={"#F47C25"}
             noOfSections={4}
             isAnimated
             yAxisTextStyle={{ color: "gray" }}
@@ -89,9 +88,10 @@ const ReportAnalytics = () => {
 };
 
 const Analytics = () => {
-  const { analytics, loading, error } = useAnalyticsData();
+  const { analytics, loading, refreshing, error, refresh } = useAnalyticsData();
 
-  if (loading) {
+  // Show full screen loader only on initial load
+  if (loading && !refreshing) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator size="large" color="#F47C25" />
@@ -101,14 +101,40 @@ const Analytics = () => {
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center bg-background p-5">
-        <Text className="text-tertiary text-center">Error: {error?.message}</Text>
-      </View>
+      <ScrollView
+        className="flex-1 bg-background"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            colors={["#F47C25"]}
+            tintColor="#F47C25"
+          />
+        }
+      >
+        <View className="flex-1 items-center justify-center bg-background p-5 min-h-screen">
+          <Text className="text-tertiary text-center">Error: {error}</Text>
+          <Text className="text-secondary text-center mt-2">Pull down to retry</Text>
+        </View>
+      </ScrollView>
     );
   }
 
   return (
-    <ScrollView className="flex-1 bg-background" overScrollMode="never">
+    <ScrollView 
+      className="flex-1 bg-background" 
+      overScrollMode="never"
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={refresh}
+          colors={["#F47C25"]}
+          tintColor="#F47C25"
+          title="Updating analytics..."
+          titleColor="#F47C25"
+        />
+      }
+    >
       <View className="p-5">
         {/* --- ANALYTICS HEADER --- */}
         <View className="pt-12 pb-6 px-4 rounded-b-2xl">
