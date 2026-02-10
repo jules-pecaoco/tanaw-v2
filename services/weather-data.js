@@ -10,7 +10,6 @@ const fetchWeatherData = async (location) => {
   });
 
   if (error) {
-    console.error("Error fetching weather data:", error);
     return null;
   }
 
@@ -27,7 +26,6 @@ const fetchHazardData = async () => {
   });
 
   if (error) {
-    console.error("Error fetching hazard data:", error);
     return null;
   }
 

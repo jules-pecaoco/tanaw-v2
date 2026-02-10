@@ -13,7 +13,6 @@ const useUserInfo = () => {
       setError(null);
 
       if (!userLocationNotification.latitude || !userLocationNotification.longitude) {
-        console.error("Invalid location data:", userLocationNotification);
         setError("Invalid location data");
         return;
       }
@@ -29,7 +28,6 @@ const useUserInfo = () => {
           setError("Failed to update user info");
         }
       } catch (err) {
-        console.error("Error updating user info:", err);
         setError(err.message || "An error occurred while updating user info");
       } finally {
         setIsUpdating(false);

@@ -31,13 +31,11 @@ const searchPlacesByType = async (location: { latitude: number; longitude: numbe
       body: JSON.stringify(requestBody),
     });
     if (!response.ok) {
-      console.error(`Google Places API error for types [${includedTypes.join(", ")}]: ${response.status}`);
       return [];
     }
     const data = await response.json();
     return data.places || [];
   } catch (error) {
-    console.error(`Failed to fetch places of type [${includedTypes.join(", ")}]:`, error);
     return [];
   }
 };

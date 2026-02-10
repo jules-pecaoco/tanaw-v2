@@ -39,7 +39,6 @@ export const useNotification = () => {
 
       return true;
     } catch (error) {
-      console.error("Error requesting notification permissions:", error);
       return false;
     }
   }, [userLocation, setUserExpoToken, setUserLocationNotification]);

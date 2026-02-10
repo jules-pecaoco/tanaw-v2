@@ -69,7 +69,6 @@ export default function HazardReportForm() {
 
       setMedia((prev) => [...prev, compressedMedia]);
     } catch (error) {
-      console.error("Media processing error:", error);
       Alert.alert("Error", "Failed to process selected media");
     } finally {
       setLoading(false);
@@ -170,7 +169,6 @@ export default function HazardReportForm() {
         Alert.alert("Report Rejected", data.reason || "No hazard detected.");
       }
     } catch (error) {
-      console.error("Submit error:", error);
       Alert.alert("Error", "Failed to submit report. Please try again.");
     } finally {
       setSubmitting(false);

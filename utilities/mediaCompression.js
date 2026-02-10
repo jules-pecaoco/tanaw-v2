@@ -9,7 +9,6 @@ const compressImage = async (uri) => {
     });
 
     if (!compressedUri || typeof compressedUri !== "string") {
-      console.warn("Image compression failed, using original URI");
       const originalFileInfo = await FileSystem.getInfoAsync(uri);
       return {
         uri,
@@ -27,7 +26,6 @@ const compressImage = async (uri) => {
       size: fileInfo.size || 0,
     };
   } catch (error) {
-    console.error("Image compression error:", error);
     const fallbackInfo = await FileSystem.getInfoAsync(uri);
     return {
       uri,

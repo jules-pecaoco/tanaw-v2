@@ -51,7 +51,6 @@ const useSearch = () => {
       queryClient.setQueryData(directionsQueryKey, newDirections);
       return newDirections;
     } catch (error) {
-      console.error("Error in getDirections:", error);
       throw error;
     }
   };

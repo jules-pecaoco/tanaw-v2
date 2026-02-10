@@ -3,11 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import useStore from "./useStore";
 
 import { fetchHazardData, fetchWeatherData } from "../services/weather-data";
-import { createLocationCacheKey } from "../utilities/locationKeyGenerator";
 
 const useWeatherData = () => {
   const { userLocation } = useStore();
-  const locationCacheKey = createLocationCacheKey(userLocation, 2);
 
   const {
     data: weatherData,
@@ -17,7 +15,7 @@ const useWeatherData = () => {
     refetch: refetchWeatherData,
     isRefetching: isWeatherRefetching,
   } = useQuery({
-    queryKey: ["weatherData", locationCacheKey],
+    queryKey: ["weatherData", userLocation],
     queryFn: () => fetchWeatherData(userLocation),
   });
 

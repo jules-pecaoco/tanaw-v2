@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { GoogleGenerativeAI } from "npm:@google/generative-ai@^0.21.0";
 import { sendExpoNotification } from "./_shared/expoPush.ts";
 
 const corsHeaders = {
@@ -209,7 +209,7 @@ serve(async (req) => {
           analysis_details: analysis,
           timestamp: new Date().toISOString(),
         }),
-        { status: 200, headers: corsHeaders }
+        { status: 200, headers: corsHeaders },
       );
     }
 
@@ -266,7 +266,7 @@ serve(async (req) => {
         {
           status: 500,
           headers: corsHeaders,
-        }
+        },
       );
     }
 
@@ -286,7 +286,7 @@ serve(async (req) => {
         {
           status: 200,
           headers: corsHeaders,
-        }
+        },
       );
     }
 
@@ -349,7 +349,7 @@ serve(async (req) => {
       {
         status: 500,
         headers: corsHeaders,
-      }
+      },
     );
   }
 });
@@ -364,6 +364,7 @@ async function analyzeMediaWithGemini(media: { mimeType: string; data: string }[
     generationConfig: { response_mime_type: "application/json" },
   });
 
+  // Strict version
   //   const prompt = `
   // You are a sophisticated AI image analysis engine for a public safety and hazard reporting application. Your primary goal is to validate user-submitted images to ensure they depict a genuine, real-world hazard and are not fraudulent or misinformative.
 
@@ -388,29 +389,43 @@ async function analyzeMediaWithGemini(media: { mimeType: string; data: string }[
   // }
   // `;
 
+  // Relaxed version
   const prompt = `
-You are a sophisticated AI image analysis engine for a public safety and hazard reporting application. Your primary goal is to validate user-submitted images to ensure they depict a genuine, real-world hazard or a reasonable digital sample for testing.
+You are a strict AI image validation engine for a public safety and hazard reporting application. Your primary goal is to determine whether submitted images genuinely depict a real-world hazard or disaster scenario.
 
-Analyze the provided images as a single, cohesive report based on the following guidelines:
+Analyze the provided images as a single, cohesive report based on the following rules:
 
-1.  **Real-World Verification:** Prefer images that depict real-world scenes or genuine photographs. However, allow digital images (e.g., photos of a computer screen or rendered samples) *if they are clearly being used for demonstration, testing, or sample purposes related to hazard awareness.*
+1. **Strict Hazard Requirement:**
+   - Accept ONLY images that clearly show a real, observable hazard or disaster situation.
+   - The hazard must be visually evident and plausible in a real-world context.
 
-2.  **Digital Content Handling:** 
-    - Accept digital or on-screen images *only if they plausibly show a hazard example or serve a demonstrative purpose.*
-    - Reject the report only if the images are purely artificial, unrelated to hazards, or contain clear synthetic/AI-generated graphics without educational or demonstrative intent.
+2. **Digital Image Policy (STRICT):**
+   - Digital, rendered, on-screen, or simulated images are allowed ONLY if they realistically and accurately depict an actual hazard/disaster scenario.
+   - The hazard must still be clearly visible and interpretable as a real-world risk.
+   - Reject digital images that are:
+     - Abstract graphics, icons, UI screenshots, or symbolic illustrations.
+     - AI-generated scenes with unrealistic physics or fictional content.
+     - Educational slides, infographics, diagrams, or purely conceptual examples without a clear real-world hazard scene.
 
-3.  **Image Uniqueness and Redundancy:** Analyze the images for redundancy. Reject the report if the images are identical or near-identical duplicates. If they show the same hazard scene or sample from slightly different angles or contexts, this is acceptable.
+3. **Relevance Enforcement:**
+   - Reject images unrelated to hazards or public safety risks.
+   - Reject images where no clear hazard is visible or identifiable.
 
-4.  **Hazard Identification:** If the images are valid (either real-world or legitimate digital samples), identify the primary hazard (e.g., Flood, Fire, Landslide, Accident).
+4. **Image Uniqueness and Redundancy:**
+   - Reject the report if images are identical or near-identical duplicates.
+   - Accept multiple images only if they provide additional context, angles, or supporting evidence of the same hazard.
 
-Based on your analysis, respond ONLY in the following JSON format. Do not include any other text or explanations outside the JSON structure.
+5. **Hazard Identification:**
+   - If valid, identify the primary hazard shown in the images.
+
+Respond ONLY using the following JSON format. Do not include any extra text outside the JSON structure.
 
 {
   "is_hazard": boolean,
   "type": "Flood" | "Fire" | "Storm" | "Earthquake" | "Landslide" | "Accident" | "Other" | null,
   "sub_type": "flash_flood" | "wildfire" | "structural_damage" | "vehicle_crash" | "power_line_down" | "road_blockage" | string | null,
-  "description": "A concise, one-sentence summary of the hazard or demonstration observed." | null,
-  "reason": "If is_hazard is false, provide a clear, brief reason based on the rules above (e.g., 'Unrelated or synthetic image.', 'Duplicate submission.', or 'No discernible hazard found.')." | null
+  "description": "A concise, one-sentence summary of the hazard observed." | null,
+  "reason": "If is_hazard is false, provide a clear, brief reason (e.g., 'No visible real-world hazard.', 'Symbolic or infographic content.', 'Unrealistic synthetic scene.', or 'Duplicate submission.')." | null
 }
 `;
 

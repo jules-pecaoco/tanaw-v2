@@ -33,7 +33,7 @@ const UserReportBottomSheet = forwardRef(({ close }, ref) => {
   // Filter for valid image paths
   const validMediaPaths = useMemo(
     () => selectedUserReport?.media_path?.filter((path) => typeof path === "string" && path.length > 0) || [],
-    [selectedUserReport]
+    [selectedUserReport],
   );
 
   // Calculate image dimensions
@@ -48,7 +48,7 @@ const UserReportBottomSheet = forwardRef(({ close }, ref) => {
         style={{ width: imageWidth, height: imageHeight }}
         className="rounded-lg bg-gray-200"
         resizeMode="cover"
-        onError={() => console.warn(`Failed to load image: ${imageUrl}`)}
+        onError={() => alert("Failed to load image at index " + index)}
       />
     </View>
   );

@@ -26,7 +26,6 @@ export const fetchUserReports = async () => {
   );
 
   if (error) {
-    console.error("Error fetching user reports:", error);
     throw new Error(error.message);
   }
 

@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
+import useStore from "./useStore";
 
 const useAnalyticsData = () => {
+  // GET USER LOCATION FROM STORE
+  const { userLocation } = useStore();
+
   // Format date to readable format
   const formatDate = useCallback((dateString) => {
     const date = new Date(dateString);
@@ -24,8 +28,12 @@ const useAnalyticsData = () => {
     const startDate = oneWeekBefore.toISOString().split("T")[0];
     const endDate = oneWeekAfter.toISOString().split("T")[0];
 
+    // USE DYNAMIC USER LOCATION
+    const latitude = userLocation.latitude;
+    const longitude = userLocation.longitude;
+
     const response = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&daily=rain_sum,precipitation_sum,apparent_temperature_max&timezone=Asia%2FSingapore&start_date=${startDate}&end_date=${endDate}`
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=rain_sum,precipitation_sum,apparent_temperature_max&timezone=Asia%2FManila&start_date=${startDate}&end_date=${endDate}`,
     );
 
     if (!response.ok) {
@@ -43,7 +51,7 @@ const useAnalyticsData = () => {
     error,
     refetch: refresh,
   } = useQuery({
-    queryKey: ["weatherData"],
+    queryKey: ["weatherData", userLocation.latitude, userLocation.longitude],
     queryFn: fetchWeatherData,
     staleTime: 5 * 60 * 1000, // 5 minutes
     cacheTime: 10 * 60 * 1000, // 10 minutes

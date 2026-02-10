@@ -29,7 +29,6 @@ export const fetchUserReports = async () => {
     .gte("created_at", fortyEightHoursAgo); // Filter for recent reports for performance
 
   if (error) {
-    console.error("Error fetching user reports:", error);
     throw new Error(error.message);
   }
 
