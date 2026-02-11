@@ -15,8 +15,11 @@ const useAnalyticsData = () => {
     });
   }, []);
 
-  // Fetch weather data function
-  const fetchWeatherData = async () => {
+  // Fetch weather data function - MOVE userLocation into the function
+  const fetchWeatherData = useCallback(async ({ queryKey }) => {
+    // Extract location from queryKey to ensure we always use the latest
+    const [, latitude, longitude] = queryKey;
+    
     // Calculate dates: 1 week before and 1 week after current date
     const today = new Date();
     const oneWeekBefore = new Date(today);
@@ -28,20 +31,15 @@ const useAnalyticsData = () => {
     const startDate = oneWeekBefore.toISOString().split("T")[0];
     const endDate = oneWeekAfter.toISOString().split("T")[0];
 
-    // USE DYNAMIC USER LOCATION
-    const latitude = userLocation.latitude;
-    const longitude = userLocation.longitude;
-
     const response = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=rain_sum,precipitation_sum,apparent_temperature_max&timezone=Asia%2FManila&start_date=${startDate}&end_date=${endDate}`,
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=rain_sum,precipitation_sum,apparent_temperature_max&timezone=Asia%2FManila&start_date=${startDate}&end_date=${endDate}`
     );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
     return response.json();
-  };
+  }, []);
 
   // TanStack Query hook
   const {
@@ -53,10 +51,11 @@ const useAnalyticsData = () => {
   } = useQuery({
     queryKey: ["weatherData", userLocation.latitude, userLocation.longitude],
     queryFn: fetchWeatherData,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000, 
+    gcTime: 10 * 60 * 1000, 
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    enabled: !!userLocation.latitude && !!userLocation.longitude,
   });
 
   // Process analytics data using useMemo for performance
