@@ -34,14 +34,12 @@ const CommunityReportsFeed = () => {
       const { data, error } = await supabase.from("user_reports").select("*").order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching reports:", error);
         setError(error.message);
       } else {
         setReports(data || []);
         setError(null);
       }
     } catch (err) {
-      console.error("Unexpected error in fetchReports:", err);
       setError(err.message);
     } finally {
       setLoading(false);

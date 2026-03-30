@@ -25,8 +25,8 @@ export default function ReportsTabLayout() {
         },
       }}
     >
-      <TopTabLayout.Screen name="community" options={{ title: "Community", swipeEnabled: true }} />
-      <TopTabLayout.Screen name="official" options={{ title: "Official", swipeEnabled: true }} />
+      <TopTabLayout.Screen name="community" options={{ title: "Community", swipeEnabled: false }} />
+      <TopTabLayout.Screen name="official" options={{ title: "Official", swipeEnabled: false }} />
     </TopTabLayout>
   );
 }

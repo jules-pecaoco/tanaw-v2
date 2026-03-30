@@ -1,60 +1,97 @@
 import Mapbox, { Camera, FillExtrusionLayer, Images, MapView, UserLocation, VectorSource } from "@rnmapbox/maps";
-import { useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
-import { icons } from "../../../constants/index";
-
+import { icons } from "../../../constants";
 import { parseLayerConfigToProps } from "../../../utilities/mapStyleParser";
 
+// --- HOOKS ---
 import useFacilitiesData from "../../../hooks/useFacilitiesData";
 import useStore from "../../../hooks/useStore";
 import useUserInfo from "../../../hooks/useUserInfo";
+import useUserReportsData from "../../../hooks/useUserReportsData";
 import useWeatherData from "../../../hooks/useWeatherData";
 
+// --- UI ---
 import FacilityBottomSheet from "../../../ui/radar/FacilityBottomSheet";
 import FacilityDirection from "../../../ui/radar/FacilityDirection";
 import FacilityPoints from "../../../ui/radar/FacilityPoints";
 import HazardLayer from "../../../ui/radar/HazardLayer";
 import LayersSettings from "../../../ui/radar/LayersSettings";
+import MapLegend from "../../../ui/radar/MapLegend";
 import SideButtons from "../../../ui/radar/SideButtons";
 import TimeStamp from "../../../ui/radar/TimeStamp";
+import UserReportBottomSheet from "../../../ui/radar/UserReportBottomSheet";
+import UserReportPoints from "../../../ui/radar/UserReportPoints";
 import WeatherLayer from "../../../ui/radar/WeatherLayer";
 import WeatherPoints from "../../../ui/radar/WeatherPoints";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN);
 
-
 const RadarScreen = () => {
-  const { userLocation, openGroups, facilityDirection, visibleLayers, currentTileUrlTemplate } = useStore();
-  const { hazardLayers, weatherLayers, isLoading: weatherIsLoading, isRefetching: weatherIsRefetching } = useWeatherData();
-  const { facilitiesData, isLoading: facilitiesIsLoading, isRefetching: facilitiesIsRefetching } = useFacilitiesData();
+  const { userLocation, openGroups, facilityDirection, visibleLayers, currentTileUrlTemplate, setSelectedUserReport, currentMapStyleUrl } =
+    useStore();
+
+  const { hazardLayers, weatherLayers, isLoading: weatherIsLoading } = useWeatherData();
+  const { facilitiesData, isLoading: facilitiesIsLoading } = useFacilitiesData();
+  const { userReports, isLoading: reportsIsLoading } = useUserReportsData();
   useUserInfo();
 
   const cameraMapRef = useRef(null);
   const facilityBottomSheetRef = useRef(null);
+  const userReportBottomSheetRef = useRef(null);
+
+  const [styleLoaded, setStyleLoaded] = useState(false);
+
+  const activeLegends = useMemo(() => {
+    const legends = [];
+
+    hazardLayers?.hazardGroups?.forEach((group) => {
+      if (openGroups.hazard?.[group.id]) {
+        group.layers.forEach((layer) => {
+          const key = `${group.id}_${layer.id}`;
+          if (visibleLayers.hazard?.[key] && layer.legend) {
+            legends.push({ layerName: layer.name, legend: layer.legend });
+          }
+        });
+      }
+    });
+
+    weatherLayers?.weatherGroups?.forEach((group) => {
+      if (openGroups.weather === group.id) {
+        group.layers.forEach((layer) => {
+          const key = `${group.id}_${layer.id}`;
+          if (visibleLayers.weather === key && layer.legend) {
+            legends.push({ layerName: layer.name, legend: layer.legend });
+          }
+        });
+      }
+    });
+
+    return legends;
+  }, [visibleLayers, openGroups, hazardLayers, weatherLayers]);
 
   const onRecenterPress = () => {
-    if (cameraMapRef.current) {
-      cameraMapRef.current.setCamera({
-        centerCoordinate: [userLocation.longitude, userLocation.latitude],
-        zoomLevel: 15,
-        pitch: 30,
-        heading: 0,
-        animationDuration: 1000,
-        animationMode: "flyTo",
-      });
-    }
+    cameraMapRef.current?.setCamera({
+      centerCoordinate: [userLocation.longitude, userLocation.latitude],
+      zoomLevel: 15,
+      pitch: 30,
+      heading: 0,
+      animationDuration: 1000,
+      animationMode: "flyTo",
+    });
   };
 
-  const openFacilityBottomSheet = () => {
-    facilityBottomSheetRef.current?.expand();
-  };
+  const openFacilityBottomSheet = () => facilityBottomSheetRef.current?.expand();
+  const closeFacilityBottomSheet = () => facilityBottomSheetRef.current?.close();
 
-  const closeFacilityBottomSheet = () => {
-    facilityBottomSheetRef.current?.close();
+  const openUserReportBottomSheet = (report) => {
+    setSelectedUserReport(report);
+    userReportBottomSheetRef.current?.expand();
   };
+  const closeUserReportBottomSheet = () => userReportBottomSheetRef.current?.close();
 
-  if (weatherIsLoading || weatherIsRefetching) {
+  if (weatherIsLoading || facilitiesIsLoading || reportsIsLoading) {
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" color="#F47C25" />
@@ -62,18 +99,18 @@ const RadarScreen = () => {
     );
   }
 
-
   return (
     <View className="flex-1">
       <View className="flex-1">
         <MapView
           style={{ flex: 1 }}
-          styleURL={Mapbox.StyleURL.Light}
-          compassEnabled={true}
-          compassFadeWhenNorth={true}
+          styleURL={currentMapStyleUrl}
+          compassEnabled
+          compassFadeWhenNorth
           logoEnabled={false}
           attributionEnabled={false}
           scaleBarEnabled={false}
+          onDidFinishLoadingStyle={() => setStyleLoaded(true)}
         >
           <Camera
             ref={cameraMapRef}
@@ -84,145 +121,112 @@ const RadarScreen = () => {
               pitch: 30,
             }}
           />
-
           <UserLocation />
-
           <Images
             images={{
               hospital: icons.hospitals,
               fire_station: icons.firestations,
               evac_site: icons.evacsites,
+              Flood: icons.flood,
+              Fire: icons.fire,
+              Landslide: icons.landslide,
+              Accident: icons.accident,
+              Earthquake: icons.earthquake,
+              Other: icons.hazard,
             }}
           />
-
-          {/* 3D BUILDINGS */}
+          {/* 🧱 3D BUILDINGS — render only after style load and if not pure raster */}
           <VectorSource id="composite" url="mapbox://mapbox.mapbox-streets-v8">
             <FillExtrusionLayer
               id="building-3d"
               sourceID="composite"
               sourceLayerID="building"
+              belowId="settlement-label"
               style={{
                 fillExtrusionHeight: ["get", "height"],
-
                 fillExtrusionBase: 0,
-
-                fillExtrusionColor: "#d3d3d3", // Light gray
-
+                fillExtrusionColor: "#d3d3d3",
                 fillExtrusionOpacity: 0.85,
               }}
             />
           </VectorSource>
-
           {/* HAZARD LAYERS */}
-          {hazardLayers?.hazardGroups &&
-            hazardLayers?.hazardGroups.flatMap((group) =>
-              openGroups.hazard[group.id]
-                ? group.layers
-                    .filter((layer) => {
-                      const layerKey = `${group.id}_${layer.id}`;
-                      return visibleLayers.hazard?.[layerKey];
-                    })
-                    .map((layer) => {
-                      const layerKey = `${group.id}_${layer.id}`;
-                      return (
-                        <HazardLayer
-                          key={layerKey}
-                          id={layerKey}
-                          url={layer.tilesetUrl}
-                          sourceLayerID={layer.sourceLayer}
-                          style={parseLayerConfigToProps(layer.style)}
-                        />
-                      );
-                    })
-                : []
-            )}
+          {hazardLayers?.hazardGroups?.flatMap((group) =>
+            openGroups.hazard[group.id]
+              ? group.layers
+                  .filter((layer) => visibleLayers.hazard?.[`${group.id}_${layer.id}`])
+                  .map((layer) => (
+                    <HazardLayer
+                      key={`${group.id}_${layer.id}`}
+                      id={`${group.id}_${layer.id}`}
+                      url={layer.tilesetUrl}
+                      sourceLayerID={layer.sourceLayer}
+                      style={parseLayerConfigToProps(layer.style)}
+                      belowLayerID="building-3d"
+                    />
+                  ))
+              : []
+          )}
 
           {/* WEATHER LAYERS */}
-          {weatherLayers?.weatherGroups &&
-            weatherLayers?.weatherGroups.flatMap((group) =>
-              openGroups.weather === group.id
-                ? group.layers
-                    .filter((layer) => {
-                      const layerKey = `${group.id}_${layer.id}`;
-                      return visibleLayers.weather === layerKey;
-                    })
-                    .map((layer) => {
-                      return (
-                        <WeatherLayer
-                          key={currentTileUrlTemplate}
-                          tileUrlTemplates={currentTileUrlTemplate}
-                          id={`${group.id}_${layer.id}`}
-                          maxZoomLevel={group.maxZoomLevel}
-                        />
-                      );
-                    })
-                : []
-            )}
-
+          {weatherLayers?.weatherGroups?.flatMap((group) =>
+            openGroups.weather === group.id
+              ? group.layers
+                  .filter((layer) => visibleLayers.weather === `${group.id}_${layer.id}`)
+                  .map((layer) => (
+                    <WeatherLayer
+                      key={currentTileUrlTemplate}
+                      tileUrlTemplates={currentTileUrlTemplate}
+                      id={`${group.id}_${layer.id}`}
+                      maxZoomLevel={group.maxZoomLevel}
+                      belowLayerID="building-3d"
+                    />
+                  ))
+              : []
+          )}
           {/* WEATHER POINTS */}
-          {weatherLayers?.weatherGroups &&
-            weatherLayers?.weatherGroups.flatMap((group) =>
-              openGroups.weather === group.id
-                ? group.layers
-                    .filter((layer) => {
-                      const layerKey = `${group.id}_${layer.id}`;
-                      return visibleLayers.weather === layerKey;
-                    })
-                    .flatMap((layer) => (layer?.nearbyLocationWeather ? <WeatherPoints key={layer.id} datas={layer.nearbyLocationWeather} /> : []))
-                : []
-            )}
-
+          {weatherLayers?.weatherGroups?.flatMap((group) =>
+            openGroups.weather === group.id
+              ? group.layers
+                  .filter((layer) => visibleLayers.weather === `${group.id}_${layer.id}`)
+                  .flatMap((layer) => (layer?.nearbyLocationWeather ? <WeatherPoints key={layer.id} datas={layer.nearbyLocationWeather} /> : []))
+              : []
+          )}
           {/* FACILITIES POINTS */}
           {facilitiesData && <FacilityPoints datas={facilitiesData} open={openFacilityBottomSheet} />}
-
-          {/* FACILITIES DIRECTION */}
+          {/* REPORT POINTS */}
+          <UserReportPoints reports={userReports} onReportPress={openUserReportBottomSheet} />
+          {/* FACILITY DIRECTION */}
           {facilityDirection.geometry && <FacilityDirection route={facilityDirection} lineColor={facilityDirection.lineColor} />}
         </MapView>
       </View>
 
-      {/* NOT IN MAPVIEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW */}
-      {/* TIMESTAMP */}
-      {weatherLayers?.weatherGroups &&
-        weatherLayers.weatherGroups.flatMap((group) =>
-          openGroups.weather === group.id
-            ? group.layers
-                .filter((layer) => {
-                  const layerKey = `${group.id}_${layer.id}`;
-                  return visibleLayers.weather === layerKey;
-                })
-                .map((layer) => {
-                  const layerKey = `${group.id}_${layer.id}`;
-                  if (typeof layer.tilesetUrl === "string") {
-                    return (
-                      <TimeStamp
-                        key={layerKey}
-                        maxPastCast={layer.maxPastCast}
-                        maxFutureCast={layer.maxFutureCast}
-                        interval={layer.interval}
-                        url={layer.tilesetUrl}
-                        isString={true}
-                      />
-                    );
-                  } else {
-                    return (
-                      <TimeStamp
-                        key={layerKey}
-                        maxPastCast={layer.maxPastCast}
-                        maxFutureCast={layer.maxFutureCast}
-                        interval={layer.interval}
-                        url={layer.tilesetUrl}
-                        isString={false}
-                      />
-                    );
-                  }
-                })
-            : []
-        )}
+      {/* --- UI Overlays --- */}
+      {weatherLayers?.weatherGroups?.flatMap((group) =>
+        openGroups.weather === group.id
+          ? group.layers
+              .filter((layer) => visibleLayers.weather === `${group.id}_${layer.id}`)
+              .map((layer) => {
+                const isString = typeof layer.tilesetUrl === "string";
+                return (
+                  <TimeStamp
+                    key={`${group.id}_${layer.id}`}
+                    maxPastCast={layer.maxPastCast}
+                    maxFutureCast={layer.maxFutureCast}
+                    interval={layer.interval}
+                    url={layer.tilesetUrl}
+                    isString={isString}
+                  />
+                );
+              })
+          : []
+      )}
 
-      {/* NAVIGATIONS */}
-      <FacilityBottomSheet isLoading={facilitiesIsLoading || facilitiesIsRefetching} ref={facilityBottomSheetRef} close={closeFacilityBottomSheet} />
+      <FacilityBottomSheet ref={facilityBottomSheetRef} close={closeFacilityBottomSheet} />
       <LayersSettings weatherGroups={weatherLayers?.weatherGroups} hazardGroups={hazardLayers?.hazardGroups} />
       <SideButtons onRecenterPress={onRecenterPress} handleFacilityBottomSheetOpen={closeFacilityBottomSheet} />
+      <MapLegend legends={activeLegends} />
+      <UserReportBottomSheet ref={userReportBottomSheetRef} close={closeUserReportBottomSheet} />
     </View>
   );
 };

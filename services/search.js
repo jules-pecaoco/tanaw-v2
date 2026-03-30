@@ -20,7 +20,7 @@ const searchCitySuggestions = async (cityName, currentLocation, sessionToken) =>
       language: "en",
       country: "ph",
       proximity: `${currentLocation.longitude},${currentLocation.latitude}`,
-      types: "city",
+      types: "locality,place,district,neighborhood",
       session_token: sessionToken,
       access_token: MAPBOX_API_KEY, // Use the constant
     });
@@ -35,7 +35,6 @@ const searchCitySuggestions = async (cityName, currentLocation, sessionToken) =>
     const data = await response.json();
     return data.suggestions || [];
   } catch (error) {
-    console.error("Error searching city:", error);
     return [];
   }
 };
@@ -63,7 +62,6 @@ const searchCityDetails = async (cityId, session_token) => {
     const data = await response.json();
     return data.features[0] || null;
   } catch (error) {
-    console.error("Error searching city details:", error);
     return null;
   }
 };
@@ -108,7 +106,6 @@ const fetchDirections = async (location, destination, profile = "driving") => {
 
     throw new Error("No routes found");
   } catch (error) {
-    console.error("Error fetching directions:", error);
     throw error;
   }
 };
@@ -145,7 +142,6 @@ const reverseGeocode = async (location) => {
       region: context.region?.name,
     };
   } catch (error) {
-    console.error("Error reverse geocoding:", error);
     return null;
   }
 };

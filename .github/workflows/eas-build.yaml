@@ -1,0 +1,84 @@
+name: EAS Build and Release
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+
+# Add permissions block - this is the key fix
+permissions:
+  contents: write  # Required for creating releases
+  actions: read    # Required for accessing workflow runs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Set Expo Token
+        run: echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Run EAS Build
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            echo "Building production (master)"
+            eas build -p android -e preview --non-interactive --wait
+          elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
+            echo "Building preview (dev)"
+            eas build -p android -e preview --non-interactive --wait
+          fi
+
+      - name: Download latest build artifact
+        run: |
+          set -e
+          BUILD_INFO=$(eas build:list --platform android --status finished --json --limit 1 --non-interactive)
+          BUILD_ID=$(echo "$BUILD_INFO" | jq -r '.[0].id')
+          BUILD_URL=$(echo "$BUILD_INFO" | jq -r '.[0].artifacts.buildUrl')
+          if [ -z "$BUILD_ID" ] || [ "$BUILD_ID" = "null" ]; then
+            echo "No completed build found. Exiting."
+            exit 1
+          fi
+          echo "Latest build id: $BUILD_ID"
+          echo "Latest build URL: $BUILD_URL"
+          # Download the build using curl
+          echo "Downloading build from $BUILD_URL..."
+          curl -L -o "Tanaw-${{ github.ref_name }}.apk" "$BUILD_URL"
+          if [ ! -f "Tanaw-${{ github.ref_name }}.apk" ]; then
+            echo "No APK file found after download"
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # Use GITHUB_TOKEN explicitly (though it's usually automatic)
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # The tag for the release
+          tag_name: "v${{ github.ref_name }}.${{ github.run_number }}"
+          # The title of the release
+          name: "Release for ${{ github.ref_name }} (Build #${{ github.run_number }})"
+          # A description for the release
+          body: |
+            Automated release for the ${{ github.ref_name }} branch.
+            Commit: `${{ github.sha }}`
+            Build ID: ${{ github.run_number }}
+          # The path to the file you want to upload
+          files: "Tanaw-${{ github.ref_name }}.apk"
+          # Mark dev releases as prerelease
+          prerelease: ${{ github.ref_name == 'dev' }}
+          # Create release even if tag doesn't exist
+          make_latest: ${{ github.ref_name == 'master' }}

@@ -25,7 +25,6 @@ export const useNotification = () => {
       setPermissionStatus(status);
 
       if (status !== "granted") {
-        alert("Failed to get push token for push notification!");
         return false;
       }
 
@@ -40,7 +39,6 @@ export const useNotification = () => {
 
       return true;
     } catch (error) {
-      console.error("Error requesting notification permissions:", error);
       return false;
     }
   }, [userLocation, setUserExpoToken, setUserLocationNotification]);

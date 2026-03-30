@@ -1,7 +1,16 @@
+import Mapbox from "@rnmapbox/maps";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import storage from "../persistence/user-settings";
+
+const mapStyles = [
+  { id: "light", url: Mapbox.StyleURL.Light, name: "Light", icon: "sunny-outline" },
+  { id: "dark", url: Mapbox.StyleURL.Dark, name: "Dark", icon: "moon-outline" },
+  { id: "satellite", url: Mapbox.StyleURL.SatelliteStreet, name: "Satellite", icon: "earth-outline" },
+  { id: "street", url: Mapbox.StyleURL.Street, name: "Street", icon: "map-outline" },
+  { id: "outdoors", url: Mapbox.StyleURL.Outdoors, name: "Outdoors", icon: "trail-sign-outline" },
+];
 
 const useStore = create(
   persist(
@@ -29,6 +38,7 @@ const useStore = create(
       // UI STATE
       currentTileUrlTemplate: null,
       facilityBottomSheetData: null,
+      selectedUserReport: null, // NEW: State to hold the data for the selected user report
       facilityDestination: {},
 
       showMenu: false,
@@ -40,6 +50,9 @@ const useStore = create(
         hazard: {},
         weather: null,
       },
+
+      currentMapStyle: "light",
+      currentMapStyleUrl: Mapbox.StyleURL.Light,
 
       // Actions
       setUserLocation: (location) => set({ userLocation: location }),
@@ -55,6 +68,16 @@ const useStore = create(
 
       setCurrentTileUrlTemplate: (url) => set({ currentTileUrlTemplate: url }),
       setFacilityBottomSheetData: (data) => set({ facilityBottomSheetData: data }),
+      setSelectedUserReport: (report) => set({ selectedUserReport: report }),
+
+      setMapStyle: (styleId) =>
+        set((state) => {
+          const style = mapStyles.find((s) => s.id === styleId);
+          return {
+            currentMapStyle: styleId,
+            currentMapStyleUrl: style?.url || Mapbox.StyleURL.Light,
+          };
+        }),
 
       toggleMenu: () => set((state) => ({ showMenu: !state.showMenu })),
       toggleGroup: (groupId, isCascade = true) =>

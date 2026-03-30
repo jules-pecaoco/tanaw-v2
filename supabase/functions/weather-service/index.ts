@@ -35,19 +35,9 @@ const extractNearbyLocationData = (nearbyCitiesData: any) => {
     name: city.name,
     weather: extractWeatherArrayData(city.weather[0]),
     heat_index: city.main.feels_like,
+    rain: city.rain,
     lat: city.coord.lat,
     lon: city.coord.lon,
-    date: dtToISOString(city.dt),
-  }));
-};
-
-const extractCitiesWeatherData = (citiesWeatherData: any) => {
-  return citiesWeatherData.list.map((city: any) => ({
-    name: city.name,
-    weather: extractWeatherArrayData(city.weather[0]),
-    heat_index: city.main.feels_like,
-    lat: city.coord.Lat,
-    lon: city.coord.Lon,
     date: dtToISOString(city.dt),
   }));
 };
@@ -133,22 +123,6 @@ const nearbyLocationWeather = async (lat: string, lon: string, apiKey: string) =
   }
 };
 
-// const citiesWeather = async (apiKey: string) => {
-//   try {
-//     const url = `https://api.openweathermap.org/data/2.5/box/city?bbox=122.0,9.0,123.6,11.2,10&units=metrics&appid=${apiKey}`;
-//     const response = await fetch(url);
-//     if (!response.ok) {
-//       throw new Error(`Error fetching nearby cities weather: ${response.statusText}`);
-//     }
-//     const data = await response.json();
-//     return {
-//       citiesWeather: extractCitiesWeatherData(data),
-//     };
-//   } catch (error) {
-//     throw new Error(`Failed to fetch nearby cities weather: ${error.message}`);
-//   }
-// };
-
 const weatherLayers = async (lat: string, lon: string, apiKey: string) => {
   try {
     const url = "https://api.rainviewer.com/public/weather-maps.json";
@@ -175,7 +149,7 @@ const weatherLayers = async (lat: string, lon: string, apiKey: string) => {
                 id: "openweathermap_heat_index",
                 name: "Heat Index Layer",
                 icon: "https://avatars.githubusercontent.com/u/1743227?s=200&v=4",
-                tilesetUrl: `http://maps.openweathermap.org/maps/2.0/weather/TD2/{z}/{x}/{y}?&appid=${apiKey}&date=`,
+                tilesetUrl: `https://maps.openweathermap.org/maps/2.0/weather/TD2/{z}/{x}/{y}?appid=${apiKey}&fill_bound=true&opacity=0.3&E6E6E6=25:FFFF00;30:FC8014&date=`,
                 sourceLayer: "openweathermap_heat_index",
                 source: "OpenWeatherMap",
                 interval: 1000 * 60 * 60 * 3, // 3 hours
@@ -183,6 +157,17 @@ const weatherLayers = async (lat: string, lon: string, apiKey: string) => {
                 maxFutureCast: 56,
                 maxZoom: 22,
                 nearbyLocationWeather: await nearbyLocationWeather(lat, lon, apiKey),
+                legend: {
+                  type: "gradient",
+                  title: "Heat Index (°C)",
+                  stops: [
+                    { color: "#E6E6E6", label: "<27" },
+                    { color: "#FFFF00", label: "27-32°C" },
+                    { color: "#FFCC00", label: "33-41°C" },
+                    { color: "#FF6600", label: "42-51°C" },
+                    { color: "#CC0001", label: ">52°C" },
+                  ],
+                },
               },
             ],
           },
@@ -195,13 +180,23 @@ const weatherLayers = async (lat: string, lon: string, apiKey: string) => {
                 id: "openweathermap_rain_layer",
                 name: "Rain Layer",
                 icon: "https://avatars.githubusercontent.com/u/1743227?s=200&v=4",
-                tilesetUrl: `http://maps.openweathermap.org/maps/2.0/weather/PR0/{z}/{x}/{y}?appid=${apiKey}&date=`,
+                tilesetUrl: `https://maps.openweathermap.org/maps/2.0/weather/PR0/{z}/{x}/{y}?appid=${apiKey}&fill_bound=true&opacity=0.7&palette=0.000027:e6f7ff;0.000694:87ceeb;0.00211:1e90ff;0.01388:0000cd&date=`,
                 sourceLayer: "openweathermap_rain_layer",
                 source: "OpenWeatherMap",
                 interval: 1000 * 60 * 60 * 3, // 3 hours
                 maxPastCast: 56,
                 maxFutureCast: 56,
                 maxZoom: 22,
+                legend: {
+                  type: "gradient",
+                  title: "Precipitation Intensity (mm/h)",
+                  stops: [
+                    { color: "#e6f7ff", label: "0.1 (Light)" }, // Very Light Blue
+                    { color: "#87ceeb", label: "2.5 (Moderate)" }, // Sky Blue
+                    { color: "#1e90ff", label: "7.6 (Heavy)" }, // Dodger Blue
+                    { color: "#0000cd", label: "50 (Violent)" }, // Medium Blue
+                  ],
+                },
               },
               {
                 id: "rainviewer_rain_layer",
@@ -225,168 +220,6 @@ const weatherLayers = async (lat: string, lon: string, apiKey: string) => {
   }
 };
 
-const hazardLayers = () => {
-  return {
-    hazardLayers: {
-      version: "1.0.0",
-      title: "Hazard Maps",
-      description: "Hazard maps for various natural disasters.",
-      attribution: "Data provided by Project NOAH",
-      hazardGroups: [
-        {
-          id: "flood",
-          name: "Flood Hazards",
-          icon: "https://cdn-icons-png.flaticon.com/512/4668/4668660.png",
-          layers: [
-            {
-              id: "flood_100year",
-              name: "Flood Prone Areas",
-              tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
-              sourceLayer: "flood_100year",
-              style: {
-                type: "fill",
-                property: "Var",
-                stops: [
-                  [1, "#b047ff"],
-                  [2, "#5a00ff"],
-                  [3, "#002474"],
-                ],
-                opacity: 0.7,
-              },
-            },
-            // {
-            //   id: "flood_25year",
-            //   name: "Flood 25 Year",
-            //   tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
-            //   sourceLayer: "flood_25year",
-            //   style: {
-            //     type: "fill",
-            //     property: "Var",
-            //     stops: [
-            //       [1, "#b047ff"],
-            //       [2, "#5a00ff"],
-            //       [3, "#002474"],
-            //     ],
-            //     opacity: 0.7,
-            //   },
-            // },
-            // {
-            //   id: "flood_5year",
-            //   name: "Flood 5 Year",
-            //   tilesetUrl: "mapbox://jules-pecaoco-dev.4p3rwjm0",
-            //   sourceLayer: "flood_5year",
-            //   style: {
-            //     type: "fill",
-            //     property: "Var",
-            //     stops: [
-            //       [1, "#b047ff"],
-            //       [2, "#5a00ff"],
-            //       [3, "#002474"],
-            //     ],
-            //     opacity: 0.7,
-            //   },
-            // },
-          ],
-        },
-        {
-          id: "landslide",
-          name: "Landslide",
-          icon: "https://cdn-icons-png.flaticon.com/512/3920/3920979.png",
-          layers: [
-            {
-              id: "landslide_hazards",
-              name: "Landslide Susceptibility",
-              tilesetUrl: "mapbox://jules-pecaoco-dev.cxsao32r",
-              sourceLayer: "landslide_hazards",
-              style: {
-                type: "fill",
-                property: "LH",
-                stops: [
-                  [1, "#ff0000"],
-                  [2, "#FFA500"],
-                  [3, "#FF4500"],
-                ],
-                opacity: 0.7,
-              },
-            },
-          ],
-        },
-        {
-          id: "storm_surge",
-          name: "Storm Surge",
-          icon: "https://cdn-icons-png.flaticon.com/512/2875/2875972.png",
-          layers: [
-            {
-              id: "storm_surge_ssa1",
-              name: "Advisory 1",
-              tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
-              sourceLayer: "storm_surge_ssa1",
-              style: {
-                type: "fill",
-                property: "HAZ",
-                stops: [
-                  [1, "#e3d1ff"],
-                  [2, "#b047ff"],
-                  [3, "#5a00ff"],
-                ],
-                opacity: 0.7,
-              },
-            },
-            {
-              id: "storm_surge_ssa2",
-              name: "Advisory 2",
-              tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
-              sourceLayer: "storm_surge_ssa2",
-              style: {
-                type: "fill",
-                property: "HAZ",
-                stops: [
-                  [1, "#e3d1ff"],
-                  [2, "#b047ff"],
-                  [3, "#5a00ff"],
-                ],
-                opacity: 0.7,
-              },
-            },
-            {
-              id: "storm_surge_ssa3",
-              name: "Advisory 3",
-              tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
-              sourceLayer: "storm_surge_ssa3",
-              style: {
-                type: "fill",
-                property: "HAZ",
-                stops: [
-                  [1, "#e3d1ff"],
-                  [2, "#b047ff"],
-                  [3, "#5a00ff"],
-                ],
-                opacity: 0.7,
-              },
-            },
-            {
-              id: "storm_surge_ssa4",
-              name: "Advisory 4",
-              tilesetUrl: "mapbox://jules-pecaoco-dev.dadr2cdn",
-              sourceLayer: "storm_surge_ssa4",
-              style: {
-                type: "fill",
-                property: "HAZ",
-                stops: [
-                  [1, "#e3d1ff"],
-                  [2, "#b047ff"],
-                  [3, "#5a00ff"],
-                ],
-                opacity: 0.7,
-              },
-            },
-          ],
-        },
-      ],
-    },
-  };
-};
-
 const aggregateWeatherData = async (lat: string, lon: string, apiKey: string) => {
   const [currentWeatherData, hourlyWeatherData, dailyWeatherData, weatherLayersData] = await Promise.all([
     currentWeather(lat, lon, apiKey),
@@ -395,20 +228,23 @@ const aggregateWeatherData = async (lat: string, lon: string, apiKey: string) =>
     weatherLayers(lat, lon, apiKey),
   ]);
 
-  const hazardLayersData = hazardLayers();
-
   return {
     ...currentWeatherData,
     ...hourlyWeatherData,
     ...dailyWeatherData,
     ...weatherLayersData,
-    ...hazardLayersData,
   };
 };
 
 const CACHE_TTL_MINUTES = 20;
 
 Deno.serve(async (req) => {
+  // Add CORS headers to the response
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+
   try {
     const openWeatherApiKey = Deno.env.get("OPENWEATHER_APIKEY");
     const { lat, lon } = await req.json();
@@ -428,7 +264,7 @@ Deno.serve(async (req) => {
 
       if (cacheAgeMinutes < CACHE_TTL_MINUTES) {
         return new Response(JSON.stringify(cachedData.data), {
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...corsHeaders },
         });
       }
     }
@@ -440,12 +276,17 @@ Deno.serve(async (req) => {
       cached_at: new Date().toISOString(),
     });
 
+    if (upsertError) {
+      // Log the error but don't prevent the user from getting data
+      console.error("Cache upsert error:", upsertError.message);
+    }
+
     return new Response(JSON.stringify(aggregatedData), {
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
       status: 400,
     });
   }

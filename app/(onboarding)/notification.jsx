@@ -30,7 +30,6 @@ const NotificationScreen = () => {
         },
       ]);
     } catch (error) {
-      console.error("Error during notification permission request:", error);
     } finally {
       setUserId(Crypto.randomUUID());
       setIsLoading(false);

@@ -10,7 +10,6 @@ const getFacilitiesData = async (location) => {
   });
 
   if (error) {
-    console.error("Error fetching weather data:", error);
     return null;
   }
 

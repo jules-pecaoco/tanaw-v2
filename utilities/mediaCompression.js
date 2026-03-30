@@ -1,5 +1,5 @@
 import * as FileSystem from "expo-file-system";
-import { Image, Video } from "react-native-compressor";
+import { Image } from "react-native-compressor";
 
 // --- Compress Image ---
 const compressImage = async (uri) => {
@@ -9,7 +9,6 @@ const compressImage = async (uri) => {
     });
 
     if (!compressedUri || typeof compressedUri !== "string") {
-      console.warn("Image compression failed, using original URI");
       const originalFileInfo = await FileSystem.getInfoAsync(uri);
       return {
         uri,
@@ -27,7 +26,6 @@ const compressImage = async (uri) => {
       size: fileInfo.size || 0,
     };
   } catch (error) {
-    console.error("Image compression error:", error);
     const fallbackInfo = await FileSystem.getInfoAsync(uri);
     return {
       uri,
@@ -39,46 +37,46 @@ const compressImage = async (uri) => {
 };
 
 // --- Compress Video ---
-const compressVideo = async (uri) => {
-  try {
-    const compressedUri = await Video.compress(
-      uri,
-      {
-        compressionMethod: "auto",
-        maxDuration: 15, // in seconds
-      },
-      (progress) => {
-      }
-    );
+// const compressVideo = async (uri) => {
+//   try {
+//     const compressedUri = await Video.compress(
+//       uri,
+//       {
+//         compressionMethod: "auto",
+//         maxDuration: 15, // in seconds
+//       },
+//       (progress) => {
+//       }
+//     );
 
-    if (!compressedUri || typeof compressedUri !== "string") {
-      console.warn("Video compression failed, using original URI");
-      const originalFileInfo = await FileSystem.getInfoAsync(uri);
-      return {
-        uri,
-        type: "video",
-        name: `video_${Date.now()}.mp4`,
-        size: originalFileInfo.size || 0,
-      };
-    }
+//     if (!compressedUri || typeof compressedUri !== "string") {
+//       console.warn("Video compression failed, using original URI");
+//       const originalFileInfo = await FileSystem.getInfoAsync(uri);
+//       return {
+//         uri,
+//         type: "video",
+//         name: `video_${Date.now()}.mp4`,
+//         size: originalFileInfo.size || 0,
+//       };
+//     }
 
-    const fileInfo = await FileSystem.getInfoAsync(compressedUri);
-    return {
-      uri: compressedUri,
-      type: "video",
-      name: `video_${Date.now()}.mp4`,
-      size: fileInfo.size || 0,
-    };
-  } catch (error) {
-    console.error("Video compression error:", error);
-    const fallbackInfo = await FileSystem.getInfoAsync(uri);
-    return {
-      uri,
-      type: "video",
-      name: `video_${Date.now()}.mp4`,
-      size: fallbackInfo.size || 0,
-    };
-  }
-};
+//     const fileInfo = await FileSystem.getInfoAsync(compressedUri);
+//     return {
+//       uri: compressedUri,
+//       type: "video",
+//       name: `video_${Date.now()}.mp4`,
+//       size: fileInfo.size || 0,
+//     };
+//   } catch (error) {
+//     console.error("Video compression error:", error);
+//     const fallbackInfo = await FileSystem.getInfoAsync(uri);
+//     return {
+//       uri,
+//       type: "video",
+//       name: `video_${Date.now()}.mp4`,
+//       size: fallbackInfo.size || 0,
+//     };
+//   }
+// };
 
-export { compressImage, compressVideo };
+export { compressImage };

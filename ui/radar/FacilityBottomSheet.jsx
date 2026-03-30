@@ -35,7 +35,7 @@ const getCategory = (category) => {
 
 const openPhoneDialer = (phoneNumber) => {
   const url = `tel:${phoneNumber}`;
-  Linking.openURL(url).catch((err) => console.error("Failed to open dialer:", err));
+  Linking.openURL(url).catch((err) => alert("Failed to open phone dialer:", err.message || err));
 };
 
 const FacilityBottomSheet = ({ isLoading, ref, close }) => {

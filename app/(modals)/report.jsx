@@ -8,7 +8,7 @@ import useLocation from "../../hooks/useLocation";
 import useStore from "../../hooks/useStore";
 
 import supabase from "../../services/supabase";
-import { compressImage, compressVideo } from "../../utilities/mediaCompression";
+import { compressImage } from "../../utilities/mediaCompression";
 
 export default function HazardReportForm() {
   const { userExpoToken, userId } = useStore();
@@ -28,15 +28,9 @@ export default function HazardReportForm() {
 
   const pickMedia = async () => {
     const images = media.filter((m) => m.type === "image");
-    const videos = media.filter((m) => m.type === "video");
 
-    if (images.length > 0 && videos.length > 0) {
-      Alert.alert("Invalid", "Cannot mix images and video.");
-      return;
-    }
-
-    if (videos.length >= 1 || images.length >= 3) {
-      Alert.alert("Limit reached", "You can only upload 1 video or 3 images.");
+    if (images.length >= 3) {
+      Alert.alert("Limit reached", "You can only upload 3 images.");
       return;
     }
 
@@ -49,7 +43,6 @@ export default function HazardReportForm() {
 
     Alert.alert("Capture Media", "Choose what to capture", [
       { text: "Take Photo", onPress: () => openCamera() },
-      { text: "Record Video (15s max)", onPress: () => openVideo() },
       { text: "Cancel", style: "cancel" },
     ]);
   };
@@ -59,20 +52,6 @@ export default function HazardReportForm() {
       mediaTypes: ["images"],
       allowsEditing: false,
       quality: 0.7,
-      videoMaxDuration: 15,
-    });
-
-    if (!result.canceled) {
-      await processSelectedMedia(result.assets[0]);
-    }
-  };
-
-  const openVideo = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ["videos"],
-      allowsEditing: false,
-      quality: 0.7,
-      videoMaxDuration: 15,
     });
 
     if (!result.canceled) {
@@ -86,15 +65,10 @@ export default function HazardReportForm() {
 
       let compressedMedia;
 
-      if (asset.type === "video") {
-        compressedMedia = await compressVideo(asset.uri);
-      } else {
-        compressedMedia = await compressImage(asset.uri);
-      }
+      compressedMedia = await compressImage(asset.uri);
 
       setMedia((prev) => [...prev, compressedMedia]);
     } catch (error) {
-      console.error("Media processing error:", error);
       Alert.alert("Error", "Failed to process selected media");
     } finally {
       setLoading(false);
@@ -108,37 +82,35 @@ export default function HazardReportForm() {
   // Helper function to validate media requirements
   const validateMediaRequirements = () => {
     if (media.length === 0) {
-      return { isValid: false, message: "Please add at least one photo or video" };
+      return { isValid: false, message: "Please add at least 3 photos" };
     }
 
     const images = media.filter((item) => item.type === "image");
-    const videos = media.filter((item) => item.type === "video");
 
-    // Check if we have at least 3 images OR at least 1 video
-    if (images.length >= 3 || videos.length >= 1) {
+    // Check if we have at least 3 images
+    if (images.length >= 3) {
       return { isValid: true, message: "" };
     }
 
     return {
       isValid: false,
-      message: "Please add at least 3 images or 1 video (15 seconds max)",
+      message: "Please add at least 3 images",
     };
   };
 
   const uploadToSupabase = async (file, name) => {
     name = name || `${file.type}_${Date.now()}.${file.type === "image" ? "jpg" : "mp4"}`;
-    const fileExt = name.split(".").pop();
     const filePath = `tmp/${name}`;
 
     const { data, error } = await supabase.storage.from("hazard-media").upload(
       filePath,
       {
         uri: file.uri,
-        type: file.type === "image" ? "image/jpeg" : "video/mp4",
+        type: "image/jpeg",
         name,
       },
       {
-        contentType: file.type === "image" ? "image/jpeg" : "video/mp4",
+        contentType: "image/jpeg",
         upsert: true,
       }
     );
@@ -197,7 +169,6 @@ export default function HazardReportForm() {
         Alert.alert("Report Rejected", data.reason || "No hazard detected.");
       }
     } catch (error) {
-      console.error("Submit error:", error);
       Alert.alert("Error", "Failed to submit report. Please try again.");
     } finally {
       setSubmitting(false);
@@ -216,7 +187,7 @@ export default function HazardReportForm() {
         {/* --- Header Section --- */}
         <Text className="text-3xl font-tbold text-gray-800 text-center mb-2">Report a Hazard</Text>
         <Text className="text-base font-tregular text-gray-500 text-center mb-2">Your submission helps keep the community safe.</Text>
-        <Text className="text-sm font-tregular text-gray-400 text-center mb-8">Required: At least 3 images or 1 video (15s max)</Text>
+        <Text className="text-sm font-tregular text-gray-400 text-center mb-8">Required: At least 3 images</Text>
 
         {/* --- Media Upload Section --- */}
         <View className="bg-white p-4 rounded-2xl shadow-sm mb-6">
@@ -231,12 +202,6 @@ export default function HazardReportForm() {
               <View key={index} className="w-1/3 p-1">
                 <View className="relative">
                   <Image source={{ uri: item.uri }} className="w-full h-24 rounded-lg" />
-                  {/* Video indicator */}
-                  {item.type === "video" && (
-                    <View className="absolute bottom-1 left-1 bg-black bg-opacity-50 px-2 py-1 rounded">
-                      <Text className="text-white text-xs">VIDEO</Text>
-                    </View>
-                  )}
                   <TouchableOpacity
                     onPress={() => removeMedia(index)}
                     className="absolute -top-1 -right-1 bg-red-500 w-6 h-6 rounded-full items-center justify-center border-2 border-white"

@@ -14,7 +14,6 @@ const useLocation = () => {
       const locationName = await reverseGeocode(userLocation);
       setUserLocationName(`${locationName.locality},${locationName.city}` || locationName.city || locationName.region || "Unknown Location");
     } catch (error) {
-      console.error("Error getting reverse geocode:", error);
       throw error;
     }
   };
@@ -44,7 +43,6 @@ const useLocation = () => {
 
       return coordinates;
     } catch (error) {
-      console.error("Error requesting location permission:", error);
       throw error;
     } finally {
       setIsRequestingLocation(false);
@@ -72,7 +70,6 @@ const useLocation = () => {
 
       return coordinates;
     } catch (error) {
-      console.error("Error getting current location:", error);
       throw error;
     } finally {
       setIsRequestingLocation(false);

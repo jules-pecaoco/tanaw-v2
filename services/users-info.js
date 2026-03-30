@@ -26,7 +26,6 @@ const upsertUserInfo = async (id, expo_token, location) => {
     .select();
 
   if (error) {
-    console.error("Error upserting user info:", error);
     return null;
   }
 

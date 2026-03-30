@@ -95,7 +95,6 @@ const SearchScreen = () => {
         setShowNotificationModal(true);
       }
     } catch (error) {
-      console.error("Error getting current location:", error);
       setLocationRetrieved(false);
       setCurrentLocationData(null);
     } finally {
@@ -131,21 +130,49 @@ const SearchScreen = () => {
     setSelectedLocationForNotification(null);
   };
 
-  const renderSuggestionItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => handleSelectSuggestion(item)}
-      className="bg-background border-b border-secondary/20 px-4 py-4 flex-row items-center active:bg-primary/10"
-    >
-      <View className="w-8 h-8 bg-primary/10 rounded-full items-center justify-center mr-3">
-        <Ionicons name="location-outline" size={16} color="#primary" />
-      </View>
-      <View className="flex-1">
-        <Text className="text-primary font-tmedium text-base">{item.name}</Text>
-        {item.full_name && <Text className="text-secondary/70 text-sm mt-1">{item.full_name}</Text>}
-      </View>
-      <Ionicons name="chevron-forward" size={16} color="#secondary" />
-    </TouchableOpacity>
-  );
+  const renderSuggestionItem = ({ item }) => {
+    const distance = item.distance ? `${(item.distance / 1000).toFixed(1)} km` : null;
+
+    const category = item.poi_category?.[0]?.replace(/_/g, " ") || item.feature_type;
+
+    return (
+      <TouchableOpacity
+        onPress={() => handleSelectSuggestion(item)}
+        className="bg-background border-b border-secondary/20 px-4 py-4 flex-row items-center active:bg-primary/10"
+      >
+        <View className="w-10 h-10 bg-primary/10 rounded-full items-center justify-center mr-3">
+          <Ionicons name={getIconName(item.maki, item.feature_type)} size={20} color="#F47C25" />
+        </View>
+
+        <View className="flex-1">
+          {/* Name and category */}
+          <View className="flex-row items-center mb-1">
+            <Text className="text-primary font-tmedium text-base flex-1">{item.name}</Text>
+            {distance && <Text className="text-green-600 text-xs font-tmedium ml-2">{distance}</Text>}
+          </View>
+
+          {/* Address line */}
+          <Text className="text-secondary/70 text-sm mb-1" numberOfLines={1}>
+            {item.address || item.place_formatted}
+          </Text>
+
+          {/* Category badge */}
+          <View className="self-start bg-primary/10 rounded-full px-2 py-0.5">
+            <Text className="text-primary text-xs capitalize">{category}</Text>
+          </View>
+        </View>
+
+        <Ionicons name="chevron-forward" size={16} color="#secondary" />
+      </TouchableOpacity>
+    );
+  };
+
+  const getIconName = (maki, featureType) => {
+    if (maki === "building") return "business";
+    if (featureType === "poi") return "star";
+    if (featureType === "address") return "pin";
+    return "location-outline";
+  };
 
   const renderRecentSearchItem = ({ item }) => (
     <TouchableOpacity
@@ -221,8 +248,7 @@ const SearchScreen = () => {
           </View>
           <TextInput
             className="bg-background w-full border rounded-full px-10"
-            placeholder="Search for a city..."
-            placeholderTextColor="#secondary"
+            placeholder="Search for a barangay or city" 
             value={searchText}
             onChangeText={handleSearchChange}
             autoCorrect={false}
@@ -379,8 +405,8 @@ const SearchScreen = () => {
             <View className="w-20 h-20 bg-background rounded-full items-center justify-center mb-6">
               <Ionicons name="earth" size={40} color="#primary" />
             </View>
-            <Text className="text-primary text-xl font-tbold mb-2">Search Cities</Text>
-            <Text className="text-secondary text-sm text-center max-w-xs">Search for any city around the Negros Island and more*...</Text>
+            <Text className="text-primary text-xl font-tbold mb-2">Search Places</Text>
+            <Text className="text-secondary text-sm text-center max-w-xs">Search for barangays, municipalities, and cities in the Philippines</Text>
           </View>
         )}
       </ScrollView>
